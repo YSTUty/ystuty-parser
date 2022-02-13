@@ -21,6 +21,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((e) => {
-    Logger.error(`❌  Error starting server, ${e}`, '', 'Bootstrap', false);
+    Logger.warn(`❌  Error starting server, ${e}`, 'Bootstrap');
     throw e;
 });
