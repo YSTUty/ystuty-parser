@@ -23,5 +23,9 @@ export const INSTANCE_NAME: string = process.env.INSTANCE_NAME || 'ystuty';
 // Application
 export const SERVER_PORT: number = +process.env.SERVER_PORT || 7576;
 
+// * Swagger
+export const SWAGGER_ACCESS_USERNAME: string = process.env.SWAGGER_ACCESS_USERNAME || '';
+export const SWAGGER_ACCESS_PASSWORD: string = process.env.SWAGGER_ACCESS_PASSWORD || '';
+
 export const YSTU_USERNAME: string = process.env.YSTU_USERNAME || '';
 export const YSTU_PASSWORD: string = process.env.YSTU_PASSWORD || '';
