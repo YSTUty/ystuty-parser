@@ -16,7 +16,9 @@ describe('AppController', () => {
 
     describe('root', () => {
         it('should return "IP:::ffff:127.0.0.1"', () => {
-            expect(appController.getIp('::ffff:127.0.0.1')).toBe('IP:::ffff:127.0.0.1');
+            expect(appController.getIp('::ffff:127.0.0.1')).toBe(
+                'IP:::ffff:127.0.0.1',
+            );
         });
     });
 });
