@@ -3,7 +3,9 @@ import { config } from 'dotenv';
 
 const repoBranch = '';
 
-config({ path: resolve(process.cwd(), `.env${repoBranch ? `.${repoBranch}` : ''}`) });
+config({
+    path: resolve(process.cwd(), `.env${repoBranch ? `.${repoBranch}` : ''}`),
+});
 
 export enum EnvType {
     DEV = 'development',
@@ -12,9 +14,10 @@ export enum EnvType {
 }
 
 // environment
-export const NODE_ENV: EnvType = (process.env.NODE_ENV as EnvType) || EnvType.DEV;
+export const NODE_ENV: EnvType =
+    (process.env.NODE_ENV as EnvType) || EnvType.DEV;
 
-export const LOG_PATH: string = process.env.LOG_PATH || './logs/all.log';
+export const CACHE_PATH: string = process.env.CACHE_PATH || './.cache-store';
 export const INSTANCE_NAME: string = process.env.INSTANCE_NAME || 'ystuty';
 
 // Application
