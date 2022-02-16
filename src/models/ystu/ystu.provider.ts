@@ -232,4 +232,26 @@ export class YSTUProvider {
         const needAuth = lkstudResponse.request.path?.includes('auth.php');
         return !needAuth;
     }
+
+    //
+
+    public async getInstituteLinks() {
+        const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
+            useCache: true,
+        });
+
+        const linkToFullList = cherrioParser.getLink2FullList(
+            raspzResponse.data,
+        );
+
+        const raspzListResponse = await this.fetch(linkToFullList, {
+            useCache: true,
+        });
+        const instituteLinks = cherrioParser.getInstituteLinks(
+            raspzListResponse.data,
+        );
+        await cacheManager.update(['links', 'instituteLinks'], instituteLinks);
+
+        return instituteLinks;
+    }
 }
