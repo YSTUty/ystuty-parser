@@ -4,6 +4,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as basicAuth from 'express-basic-auth';
 import * as swStats from 'swagger-stats';
 import * as requestIp from 'request-ip';
+import * as compression from 'compression';
+import * as cors from 'cors';
+import helmet from 'helmet';
 
 import * as xEnv from '@my-environment';
 import { HttpExceptionFilter } from '@my-common';
@@ -12,6 +15,15 @@ import { AppModule } from './models/app/app.module';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+
+    app.use(compression());
+    app.use(cors());
+    app.use(
+        helmet({
+            contentSecurityPolicy:
+                xEnv.NODE_ENV === xEnv.EnvType.PROD ? undefined : false,
+        }),
+    );
 
     app.useGlobalFilters(new HttpExceptionFilter());
 
