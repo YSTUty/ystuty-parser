@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  app_srv:
+    build:
+      context: .
+      target: base
+      dockerfile: ./Dockerfile
+    command: yarn start:dev
+    ports:
+      # 7576 is the default port
+      - ${EXTERNAL_PORT:-7576}:7576
+    volumes:
+      - ./.env:/home/node/app/.env
+      - ./.cache-store:/home/node/app/.cache-store
+      - /home/node/app/node_modules
+    restart: unless-stopped
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
