@@ -2,6 +2,7 @@ import {
     BadRequestException,
     Injectable,
     Logger,
+    NotFoundException,
     OnModuleInit,
 } from '@nestjs/common';
 import { IInstituteData } from '@my-interfaces';
@@ -83,11 +84,11 @@ export class YSTUService implements OnModuleInit {
     public getByGroup(
         name: string,
         short?: boolean,
-    ): Promise<{ isCache: boolean; data: (OneWeek | MixedDay)[] }>;
+    ): Promise<{ isCache: boolean; items: (OneWeek | MixedDay)[] }>;
     public getByGroup(
         name: string,
         short: true,
-    ): Promise<{ isCache: boolean; data: MixedDay[] }>;
+    ): Promise<{ isCache: boolean; items: MixedDay[] }>;
     public async getByGroup(name: string, short = false) {
         const file: [string, string] = ['schedule', name];
         const isTimeout = await cacheManager.checkTimeout(file);
@@ -95,7 +96,7 @@ export class YSTUService implements OnModuleInit {
         if (isTimeout === false) {
             const cacheData = await cacheManager.readData(file);
             if (cacheData.length) {
-                return { isCache: true, data: cacheData };
+                return { isCache: true, items: cacheData };
             }
         }
 
@@ -103,7 +104,7 @@ export class YSTUService implements OnModuleInit {
             (e) => e.name.toLowerCase() === name.toLowerCase(),
         );
         if (!groupInfo) {
-            throw new BadRequestException('group not found by this name');
+            throw new NotFoundException('group not found by this name');
         }
 
         const scheduleResponse = await this.ystuProvider.fetch(groupInfo.link, {
@@ -128,9 +129,9 @@ export class YSTUService implements OnModuleInit {
             );
         }
 
-        const data = [...scheduleLectureData, ...scheduleData];
-        await cacheManager.update(file, data, 86400);
+        const items = [...scheduleLectureData, ...scheduleData];
+        await cacheManager.update(file, items, 86400);
 
-        return { isCache: false, data };
+        return { isCache: false, items };
     }
 }

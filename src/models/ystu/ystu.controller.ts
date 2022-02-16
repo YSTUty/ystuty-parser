@@ -63,7 +63,7 @@ export class YSTUController {
         schema: {
             type: 'object',
             properties: {
-                data: {
+                items: {
                     type: 'array',
                     items: {
                         type: 'object',
@@ -94,7 +94,7 @@ export class YSTUController {
         },
     })
     async getInstitutes() {
-        return { data: await this.ystuService.getInstitutes() };
+        return { items: await this.ystuService.getInstitutes() };
     }
 
     @Get('schedule/groups')
@@ -104,7 +104,7 @@ export class YSTUController {
         schema: {
             type: 'object',
             properties: {
-                data: {
+                items: {
                     type: 'array',
                     items: {
                         type: 'string',
@@ -121,7 +121,7 @@ export class YSTUController {
         },
     })
     async getGroups() {
-        return { data: await this.ystuService.getGroups() };
+        return { items: await this.ystuService.getGroups() };
     }
 
     @ApiOperation({ summary: 'Get a schedule for the specified group' })
@@ -156,7 +156,7 @@ export class YSTUController {
                 isCache: {
                     type: 'boolean',
                 },
-                data: {
+                items: {
                     type: 'array',
                     items: {
                         oneOf: [
