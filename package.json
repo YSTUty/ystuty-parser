@@ -2,9 +2,17 @@
   "name": "ystuty-parser",
   "version": "0.0.2",
   "description": "",
-  "author": "",
+  "author": "xTCry [Vladislav Kh] (https://github.com/xTCry/)",
   "private": true,
   "license": "MIT",
+  "repository": {
+    "url": "https://github.com/yaponyal/ystuty-parser.git",
+    "type": "git"
+  },
+  "homepage": "https://github.com/yaponyal/ystuty-parser#readme",
+  "bugs": {
+    "url": "https://github.com/yaponyal/ystuty-parser/issues"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
