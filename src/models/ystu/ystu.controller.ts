@@ -174,6 +174,6 @@ export class YSTUController {
         @Query('short', new DefaultValuePipe(false), ParseBoolPipe)
         short?: boolean,
     ) {
-        return this.ystuService.getByGroup(name, short);
+        return this.ystuService.getScheduleByGroup(name, short);
     }
 }

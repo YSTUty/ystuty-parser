@@ -10,6 +10,14 @@ export class Lesson {
      */
     time: string;
     /**
+     * Timestamp начала пары
+     */
+    startAt?: string | Date;
+    /**
+     * Timestamp конца пары
+     */
+    endAt?: string | Date;
+    /**
      * Оригинальная строка с порядковым номером пары на дню со интервалом времени
      */
     originalTimeTitle: string;
@@ -42,9 +50,13 @@ export class Lesson {
      */
     isStream: boolean;
     /**
-     * Длительность пары
+     * Длительность пары в часах
      */
     duration: number;
+    /**
+     * Длительность пары в минутах
+     */
+    durationMinutes: number;
     /**
      * Разделение по подгруппам
      */

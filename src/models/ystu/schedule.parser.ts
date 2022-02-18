@@ -1,4 +1,5 @@
 import { LessonFlags, WeekNumberType, WeekParityType } from '@my-interfaces';
+import { Lesson } from './entity/lesson.entity';
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneDay } from './entity/one-day.entity';
 import { OneWeek } from './entity/one-week.entity';
@@ -30,25 +31,6 @@ export const parseDayLesson = (str: string[]) => {
     if (number > 2 || number > 7) {
         --number;
     }
-
-    const fDuration = Number(timeInfo.ff) || 2;
-    const dateTime = new Date(0);
-    const ds = timeInfo.start.split(':').map(Number);
-    dateTime.setHours(ds[0], ds[1]);
-    dateTime.setMinutes(
-        dateTime.getMinutes() +
-            /* 90 */ ((f) => f * 90 + (f - 1) * 10)(Math.floor(fDuration / 2)),
-    );
-    const endTime = `${dateTime
-        .getHours()
-        .toString()
-        .padStart(2, '0')}:${dateTime
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}`;
-
-    // * time
-    const time = `${timeInfo.start}-${timeInfo.end || endTime || timeInfo.ff}`;
 
     const { weekParity, weekRange, weekDistParity, weekDistRange } =
         _weeks.match(RegExpWeek).groups;
@@ -107,6 +89,25 @@ export const parseDayLesson = (str: string[]) => {
     const isDivision = !!typeGroups.delim;
     const subInfo = typeGroups.subInfo;
 
+    const durationMinutes = ((f) => f * 90 + (f - 1) * 10)(
+        Math.floor(duration / 2),
+    );
+
+    const dateTime = new Date(0);
+    const ds = timeInfo.start.split(':').map(Number);
+    dateTime.setHours(ds[0], ds[1]);
+    dateTime.setMinutes(dateTime.getMinutes() + durationMinutes);
+    const endTime = `${dateTime
+        .getHours()
+        .toString()
+        .padStart(2, '0')}:${dateTime
+        .getMinutes()
+        .toString()
+        .padStart(2, '0')}`;
+
+    // * time
+    const time = `${timeInfo.start}-${timeInfo.end || endTime || timeInfo.ff}`;
+
     const type: LessonFlags = [
         typeGroups.types || '',
         typeGroups.types2 || '',
@@ -133,8 +134,11 @@ export const parseDayLesson = (str: string[]) => {
     const auditoryName = _audit.trim() /* .split(' ') */ || null;
     const teacherName = _teacher.trim() || null;
 
+    const startAt = null;
+
     return {
         number,
+        startAt,
         time,
         originalTimeTitle: _time,
         parity,
@@ -144,11 +148,12 @@ export const parseDayLesson = (str: string[]) => {
         type,
         isStream,
         duration,
+        durationMinutes,
         isDivision,
         auditoryName,
         teacherName,
         subInfo,
-    };
+    } as Lesson;
 };
 
 export const parseWeekDay = (data: string[][], weekDayName: string) => {
@@ -204,7 +209,7 @@ export const splitLessonsDayByWeekNumber = (
                     weekNumber % 2 !== lesson.parity - 1)
             );
         });
-        if (!lessons.length) {
+        if (lessons.length < 1) {
             return false;
         }
 
@@ -255,13 +260,23 @@ const setDaysDate = (
     weekNumber: number,
     offsetWeek: number = 0,
 ) =>
-    allDays.forEach(({ info }) => {
+    allDays.forEach(({ info, lessons }) => {
         info.date = getDateByWeek(weekNumber + offsetWeek, info.type);
         info.dateStr = `${info.date.getDate().toString().padStart(2, '0')}.${(
             info.date.getMonth() + 1
         )
             .toString()
             .padStart(2, '0')}.${info.date.getFullYear()}`;
+        lessons.forEach((lesson) => {
+            lesson.startAt = new Date(
+                `${info.date.toISOString().split('T')[0]}T${
+                    lesson.time.split('-')[0]
+                }`,
+            );
+            lesson.endAt = new Date(
+                lesson.startAt.getTime() + lesson.durationMinutes * 60e3,
+            ).toISOString();
+        });
     });
 
 const getWeekNumber = (date: string | number | Date) => {
