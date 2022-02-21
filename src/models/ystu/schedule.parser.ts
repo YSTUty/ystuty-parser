@@ -256,6 +256,15 @@ const getWeekDayTypeByName = (str: string) => {
         : WeekNumberType.Sunday;
 };
 
+const createDateAsUTC = (date: Date, hours: number, minutes: number) =>
+    new Date(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        hours,
+        minutes,
+    );
+
 const setDaysDate = (
     allDays: OneDay[],
     weekNumber: number,
@@ -269,10 +278,11 @@ const setDaysDate = (
             .toString()
             .padStart(2, '0')}.${info.date.getFullYear()}`;
         lessons.forEach((lesson) => {
-            lesson.startAt = new Date(
-                `${info.date.toISOString().split('T')[0]}T${
-                    lesson.time.split('-')[0]
-                }`,
+            const [hours, minutes] = lesson.time.split('-')[0].split(':');
+            lesson.startAt = createDateAsUTC(
+                info.date,
+                Number(hours),
+                Number(minutes),
             );
             lesson.endAt = new Date(
                 lesson.startAt.getTime() + lesson.durationMinutes * 60e3,
