@@ -232,10 +232,11 @@ const getDateByWeek = (
     year = new Date().getFullYear(),
 ) =>
     new Date(
-        year,
-        0,
-        2 + day + (week - 1) * 7 - new Date(year, 0, 1).getDay(),
-        3,
+        Date.UTC(
+            year,
+            0,
+            2 + day + (week - 1) * 7 - new Date(year, 0, 1).getDay(),
+        ),
     );
 
 const getWeekDayTypeByName = (str: string) => {
