@@ -2,14 +2,15 @@ version: '3.8'
 
 services:
   app_srv:
+    hostname: ystuty_parser
     build:
       context: .
       target: base
       dockerfile: ./Dockerfile
     command: yarn start:dev
     ports:
-      # 7576 is the default port
-      - ${EXTERNAL_PORT:-7576}:7576
+      # 8080 is the default port
+      - ${EXTERNAL_PORT:-8080}:8080
     volumes:
       - ./.env:/home/node/app/.env
       - ./.cache-store:/home/node/app/.cache-store
