@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import ical, { ICalAlarmType } from 'ical-generator';
+import ical, {
+    ICalCalendarMethod,
+    ICalEventTransparency,
+    ICalEventStatus,
+} from 'ical-generator';
 import * as moment from 'moment';
 import { getLessonTypeStrArr } from '@my-common';
 import * as xEnv from '@my-environment';
@@ -19,10 +23,13 @@ export class CalendarService {
             .source(`${xEnv.SERVER_URL}/calendar/${groupName}.ical`)
             .prodId({
                 company: 'YSTUty',
-                product: 'Schedule',
+                product: `${xEnv.APP_NAME} Schedule`,
                 language: 'RU',
             })
+            .scale('gregorian')
+            .method(ICalCalendarMethod.PUBLISH)
             .timezone('Europe/Moscow')
+            .description(`Расписание занятий ЯГТУ для группы ${groupName}`)
             .ttl(60 * 60);
 
         for (const week of schedule.items) {
@@ -47,13 +54,15 @@ export class CalendarService {
                                 lesson.isDistant ? ' (Дистант)' : ''
                             } ${lesson.teacherName}`,
                         )
-                        .alarms([
-                            { type: ICalAlarmType.display, trigger: 60 * 30 },
-                        ])
+                        // .alarms([
+                        //     { type: ICalAlarmType.display, trigger: 60 * 30 },
+                        // ])
                         .organizer({
                             name: lesson.teacherName,
                             email: 'nope@ystu.ru',
                         })
+                        .status(ICalEventStatus.CONFIRMED)
+                        .transparency(ICalEventTransparency.OPAQUE)
                         .location({
                             title: `${lesson.auditoryName}`,
                             address: `Ярославль, ЯГТУ${

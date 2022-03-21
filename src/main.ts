@@ -50,10 +50,10 @@ async function bootstrap() {
     }
 
     const swaggerConfig = new DocumentBuilder()
-        .setTitle('YSTUty Parser API')
+        .setTitle(`${xEnv.APP_NAME} API`)
         .setDescription('This documentation describes the YSTUty Parser API.')
         .setVersion('1.0.1')
-        .addTag('ystu', 'YSTUty parser')
+        .addTag('ystu', 'YSTU parser')
         .addTag('calendar', 'Calendar events')
         .build();
     const swaggerSpec = SwaggerModule.createDocument(app, swaggerConfig);
