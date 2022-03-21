@@ -6,7 +6,7 @@ import { YSTUProvider } from './ystu.provider';
 import { YSTUService } from './ystu.service';
 
 @Module({
-    imports: [HttpModule],
+    imports: [HttpModule.register({})],
     controllers: [YSTUController],
     providers: [YSTUService, YSTUProvider],
     exports: [YSTUService],

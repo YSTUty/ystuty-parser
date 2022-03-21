@@ -4,9 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { YSTUModule } from '../ystu/ystu.module';
+import { CalendarModule } from '../calendar/calendar.module';
 
 @Module({
-    imports: [YSTUModule],
+    imports: [YSTUModule, CalendarModule],
     controllers: [AppController],
     providers: [AppService],
 })
