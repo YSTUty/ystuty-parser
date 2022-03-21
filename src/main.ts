@@ -52,7 +52,7 @@ async function bootstrap() {
     const swaggerConfig = new DocumentBuilder()
         .setTitle('YSTUty Parser API')
         .setDescription('This documentation describes the YSTUty Parser API.')
-        .setVersion('1.0')
+        .setVersion('1.0.1')
         .addTag('ystu', 'YSTUty parser')
         .addTag('calendar', 'Calendar events')
         .build();
