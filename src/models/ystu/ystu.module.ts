@@ -9,5 +9,6 @@ import { YSTUService } from './ystu.service';
     imports: [HttpModule],
     controllers: [YSTUController],
     providers: [YSTUService, YSTUProvider],
+    exports: [YSTUService],
 })
 export class YSTUModule {}

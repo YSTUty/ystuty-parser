@@ -5,6 +5,7 @@ import * as basicAuth from 'express-basic-auth';
 import * as swStats from 'swagger-stats';
 import * as requestIp from 'request-ip';
 import * as compression from 'compression';
+import { json } from 'body-parser';
 import * as cors from 'cors';
 import helmet from 'helmet';
 
@@ -24,6 +25,7 @@ async function bootstrap() {
                 xEnv.NODE_ENV === xEnv.EnvType.PROD ? undefined : false,
         }),
     );
+    app.use(json());
 
     app.useGlobalFilters(new HttpExceptionFilter());
 
