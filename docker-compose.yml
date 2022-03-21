@@ -14,7 +14,6 @@ services:
     volumes:
       - ./.env:/home/node/app/.env
       - ./.cache-store:/home/node/app/.cache-store
-      - /home/node/app/node_modules
     networks:
       - ystuty_network
     restart: unless-stopped
