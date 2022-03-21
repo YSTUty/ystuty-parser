@@ -3,7 +3,7 @@ import { RealIP } from 'nestjs-real-ip';
 
 import { AppService } from './app.service';
 
-@Controller('/api')
+@Controller('/app')
 export class AppController {
     public readonly timeStart = Date.now();
 

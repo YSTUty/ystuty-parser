@@ -21,7 +21,7 @@ import { OneWeek } from './entity/one-week.entity';
 import { YSTUService } from './ystu.service';
 
 @ApiTags('ystu')
-@Controller('/api/ystu')
+@Controller('/ystu')
 export class YSTUController {
     constructor(private readonly ystuService: YSTUService) {}
 

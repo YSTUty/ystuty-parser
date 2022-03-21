@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { CalendarService } from './calendar.service';
 
 @ApiTags('calendar')
-@Controller('/api/calendar')
+@Controller('/calendar')
 export class CalendarController {
     private readonly logger = new Logger(CalendarController.name);
 
