@@ -35,7 +35,7 @@ export class CalendarService {
         for (const week of schedule.items) {
             for (const day of week.days) {
                 for (const lesson of day.lessons) {
-                    calendar
+                    const event = calendar
                         .createEvent({
                             // id: `Z-${week.number}-${day.info.type}-${lesson.number}`,
                             // busystatus: ICalEventBusyStatus.BUSY,
@@ -57,10 +57,6 @@ export class CalendarService {
                         // .alarms([
                         //     { type: ICalAlarmType.display, trigger: 60 * 30 },
                         // ])
-                        .organizer({
-                            name: lesson.teacherName,
-                            email: 'nope@ystu.ru',
-                        })
                         .status(ICalEventStatus.CONFIRMED)
                         .transparency(ICalEventTransparency.OPAQUE)
                         .location({
@@ -73,6 +69,12 @@ export class CalendarService {
                                     : ''
                             }`,
                         });
+                    if (lesson.teacherName) {
+                        event.organizer({
+                            name: lesson.teacherName,
+                            email: 'nope@ystu.ru',
+                        });
+                    }
                 }
             }
         }
