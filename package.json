@@ -54,7 +54,7 @@
     "ical-generator": "^3.4.0",
     "iconv-lite": "^0.6.3",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "nestjs-real-ip": "^2.0.0",
     "prom-client": "^14.0.1",
     "reflect-metadata": "^0.1.13",
