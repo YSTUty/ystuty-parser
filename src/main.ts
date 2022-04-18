@@ -8,6 +8,10 @@ import * as compression from 'compression';
 import { json } from 'body-parser';
 import * as cors from 'cors';
 import helmet from 'helmet';
+import {
+    initializeTransactionalContext,
+    patchTypeORMRepositoryWithBaseRepository,
+} from 'typeorm-transactional-cls-hooked';
 
 import * as xEnv from '@my-environment';
 import { HttpExceptionFilter, ValidationHttpPipe } from '@my-common';
@@ -15,6 +19,9 @@ import { HttpExceptionFilter, ValidationHttpPipe } from '@my-common';
 import { AppModule } from './models/app/app.module';
 
 async function bootstrap() {
+    initializeTransactionalContext();
+    patchTypeORMRepositoryWithBaseRepository();
+
     const app = await NestFactory.create(AppModule);
     app.setGlobalPrefix('api');
     app.enableVersioning({

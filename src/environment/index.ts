@@ -1,5 +1,6 @@
 import { resolve } from 'path';
 import { config } from 'dotenv';
+import { DataSourceOptions } from 'typeorm';
 // import { ExtractJwt } from 'passport-jwt';
 
 const repoBranch = '';
@@ -19,7 +20,8 @@ export const NODE_ENV: EnvType =
     (process.env.NODE_ENV as EnvType) || EnvType.DEV;
 
 export const CACHE_PATH: string = process.env.CACHE_PATH || './.cache-store';
-export const INSTANCE_NAME: string = process.env.INSTANCE_NAME || 'ystuty-parser';
+export const INSTANCE_NAME: string =
+    process.env.INSTANCE_NAME || 'ystuty-parser';
 
 // Application
 export const APP_NAME: string = process.env.MAIN_NAME || 'YSTUty Parser';
@@ -68,6 +70,29 @@ export const SERVER_URL: string =
 // };
 
 // export const TYPEORM = typeormEnviroment[NODE_ENV];
+
+export const mssqlDefaults: DataSourceOptions = {
+    type: 'mssql' as const,
+    synchronize: false,
+    logging: true,
+    maxQueryExecutionTime: 3000,
+    options: {
+        encrypt: false,
+        cryptoCredentialsDetails: {
+            minVersion: 'TLSv1',
+        },
+    },
+};
+
+export const TYPEORM_CONFIG_YID = {
+    ...mssqlDefaults,
+    host: process.env.TYPEORM_YID_HOST,
+    port: +process.env.TYPEORM_YID_PORT || 1433,
+    username: process.env.TYPEORM_YID_USER,
+    password: process.env.TYPEORM_YID_PASSWORD,
+    database: process.env.TYPEORM_YID_DATABASE || 'master',
+    schema: process.env.TYPEORM_YID_SCHEMA,
+};
 
 // // redis
 // const redis_enviroment = {
