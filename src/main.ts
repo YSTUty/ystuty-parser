@@ -10,7 +10,7 @@ import * as cors from 'cors';
 import helmet from 'helmet';
 
 import * as xEnv from '@my-environment';
-import { HttpExceptionFilter } from '@my-common';
+import { HttpExceptionFilter, ValidationHttpPipe } from '@my-common';
 
 import { AppModule } from './models/app/app.module';
 
@@ -31,6 +31,7 @@ async function bootstrap() {
     );
     app.use(json());
 
+    app.useGlobalPipes(new ValidationHttpPipe({ transform: true }));
     app.useGlobalFilters(new HttpExceptionFilter());
 
     app.use(requestIp.mw({ attributeName: 'ip' }));
