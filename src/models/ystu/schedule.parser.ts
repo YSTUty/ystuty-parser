@@ -32,48 +32,54 @@ export const parseDayLesson = (str: string[]) => {
         --number;
     }
 
-    const { weekParity, weekRange, weekDistParity, weekDistRange } =
-        _weeks.match(RegExpWeek).groups;
+    let parity = WeekParityType.CUSTOM;
+    let range: number[] = [];
+    let rangeDist: number[] = [];
 
-    const parity: WeekParityType =
-        weekParity === 'н'
-            ? WeekParityType.ODD
-            : weekParity === 'ч'
-            ? WeekParityType.EVEN
-            : WeekParityType.CUSTOM;
-    const range = weekRange
-        ? parseRange(weekRange).filter(
-              (weekNumber) =>
-                  parity === WeekParityType.CUSTOM ||
-                  weekNumber % 2 !== parity - 1,
-          )
-        : [];
+    if (_weeks) {
+        const { weekParity, weekRange, weekDistParity, weekDistRange } =
+            _weeks.match(RegExpWeek).groups;
 
-    const distParity: WeekParityType =
-        weekDistParity === 'н'
-            ? WeekParityType.ODD
-            : weekDistParity === 'ч'
-            ? WeekParityType.EVEN
-            : WeekParityType.CUSTOM;
-    const rangeDist = weekDistRange
-        ? parseRange(weekDistRange).filter(
-              (weekNumber) =>
-                  distParity === WeekParityType.CUSTOM ||
-                  weekNumber % 2 !== distParity - 1,
-          )
-        : [];
+        parity =
+            weekParity === 'н'
+                ? WeekParityType.ODD
+                : weekParity === 'ч'
+                ? WeekParityType.EVEN
+                : WeekParityType.CUSTOM;
+        range = weekRange
+            ? parseRange(weekRange).filter(
+                  (weekNumber) =>
+                      parity === WeekParityType.CUSTOM ||
+                      weekNumber % 2 !== parity - 1,
+              )
+            : [];
+
+        const distParity: WeekParityType =
+            weekDistParity === 'н'
+                ? WeekParityType.ODD
+                : weekDistParity === 'ч'
+                ? WeekParityType.EVEN
+                : WeekParityType.CUSTOM;
+        rangeDist = weekDistRange
+            ? parseRange(weekDistRange).filter(
+                  (weekNumber) =>
+                      distParity === WeekParityType.CUSTOM ||
+                      weekNumber % 2 !== distParity - 1,
+              )
+            : [];
+    }
 
     // *
     const lessonName = _title.trim();
 
     const typeRegExp = new RegExp(
-        '(?<types>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?)?(?<star>\\*)?' +
+        '(?<types>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?)?(?<star>\\*)?' +
             '( ?(?<duration>[0-9]+)ч)?' +
             '( ?(?<delim>по п\\/г))?' +
-            '(,? ?(?<types2>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?))?' +
-            '(,? ?(?<types3>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?))?' +
-            '(,? ?(?<types4>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?))?' +
-            '(,? ?\\(\\+(?<types5>лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?)\\))?' +
+            '(,? ?(?<types2>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?(?<types3>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?(?<types4>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?\\(\\+(?<types5>лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\))?' +
             ',?' +
             '( ?(?<subInfo>.*))?',
         'i',
@@ -127,6 +133,14 @@ export const parseDayLesson = (str: string[]) => {
                     ? LessonFlags.Labaratory
                     : type.includes('кп')
                     ? LessonFlags.CourseProject
+                    : type.includes('конс')
+                    ? LessonFlags.Consultation
+                    : type.includes('диф')
+                    ? LessonFlags.DifferentiatedTest
+                    : type.includes('зач')
+                    ? LessonFlags.Test
+                    : type.includes('экз')
+                    ? LessonFlags.Exam
                     : LessonFlags.None),
             LessonFlags.None,
         );
@@ -156,10 +170,14 @@ export const parseDayLesson = (str: string[]) => {
     } as Lesson;
 };
 
-export const parseWeekDay = (data: string[][], weekDayName: string) => {
-    const [titles, ...lessonsArr] = data[0].map((_, i) =>
-        data.map((row) => row[i]),
-    );
+export const parseWeekDay = (
+    data: string[][],
+    weekDayName: string,
+    lessonDateStr?: string,
+) => {
+    const [titles, ...lessonsArr] = data[0]
+        .map((_, i) => data.map((row) => row[i]))
+        .filter((e) => e.some(Boolean));
 
     const day: MixedDay = {
         info: {
@@ -168,6 +186,29 @@ export const parseWeekDay = (data: string[][], weekDayName: string) => {
         },
         lessons: [],
     };
+
+    // if without 'weeks' column
+    if (titles.length === 5) {
+        if (lessonDateStr) {
+            const [d, month, year] = lessonDateStr.split('.').map(Number);
+            day.info.date = new Date(Date.UTC(year, month - 1, d));
+            day.info.dateStr = lessonDateStr;
+        }
+
+        for (const lessonArr of lessonsArr) {
+            if (lessonArr.length !== titles.length) {
+                continue;
+            }
+
+            const dayLesson = parseDayLesson([
+                ...lessonArr.slice(0, 1),
+                null,
+                ...lessonArr.slice(1),
+            ]);
+            day.lessons.push(dayLesson);
+        }
+        return day;
+    }
 
     for (const lessonArr of lessonsArr) {
         if (lessonArr.length !== titles.length) {
@@ -201,6 +242,10 @@ export const splitLessonsDayByWeekNumber = (
 ) => {
     const clone = JSON.parse(JSON.stringify(allDays)) as OneDay[];
     return clone.filter((day) => {
+        if (weekNumber === null) {
+            return true;
+        }
+
         const lessons = day.lessons.filter((lesson) => {
             lesson.isDistant = lesson.rangeDist.includes(weekNumber);
             return (
@@ -271,12 +316,16 @@ const setDaysDate = (
     offsetWeek: number = 0,
 ) =>
     allDays.forEach(({ info, lessons }) => {
-        info.date = getDateByWeek(weekNumber + offsetWeek, info.type);
-        info.dateStr = `${info.date.getDate().toString().padStart(2, '0')}.${(
-            info.date.getMonth() + 1
-        )
-            .toString()
-            .padStart(2, '0')}.${info.date.getFullYear()}`;
+        if (/* !info.dateStr &&  */ weekNumber !== null) {
+            info.date = getDateByWeek(weekNumber + offsetWeek, info.type);
+            info.dateStr = `${info.date
+                .getDate()
+                .toString()
+                .padStart(2, '0')}.${(info.date.getMonth() + 1)
+                .toString()
+                .padStart(2, '0')}.${info.date.getFullYear()}`;
+        }
+
         lessons.forEach((lesson) => {
             const [hours, minutes] = lesson.time.split('-')[0].split(':');
             lesson.startAt = createDateAsUTC(
@@ -337,8 +386,41 @@ export const splitToWeeks = (
     allDays: MixedDay[],
     semesterStartDate?: Date | string | number,
 ) => {
+    if (allDays.some((day) => day.info.dateStr)) {
+        const weeks: OneWeek[] = [];
+
+        const splitWeekDays: MixedDay[][] = [];
+        let week = 0;
+        let lastWeekType: WeekNumberType = 0;
+        for (const day of allDays) {
+            if (!splitWeekDays[week]) {
+                splitWeekDays[week] = [];
+            }
+            if (
+                splitWeekDays[week].some(
+                    (e) => e.info.type === day.info.type,
+                ) ||
+                day.info.type < lastWeekType
+            ) {
+                ++week;
+                splitWeekDays[week] = [];
+            }
+            lastWeekType = day.info.type;
+            splitWeekDays[week].push(day);
+        }
+
+        for (const days of splitWeekDays) {
+            // const days = splitLessonsDayByWeekNumber(weekDays, null);
+            setDaysDate(days, null);
+
+            weeks.push({ number: null, days });
+        }
+        return weeks;
+    }
+
     const minWeek = getMinWeekNumber(allDays);
     const maxWeek = getMaxWeekNumber(allDays);
+
     const offsetWeek =
         getWeekNumber(semesterStartDate ?? getStartDateOfSemester()) - 1;
     const weeks: OneWeek[] = [];

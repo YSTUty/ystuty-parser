@@ -58,6 +58,12 @@ export class YSTUController {
     @ApiOperation({
         summary: 'List of available institutes with a list of groups',
     })
+    @ApiQuery({
+        name: 'extramural',
+        description: 'Append groups of extramural education.',
+        type: Boolean,
+        required: false,
+    })
     @ApiResponse({
         status: 200,
         schema: {
@@ -93,12 +99,21 @@ export class YSTUController {
             },
         },
     })
-    async getInstitutes() {
-        return { items: await this.ystuService.getInstitutes() };
+    async getInstitutes(
+        @Query('extramural', new DefaultValuePipe(false), ParseBoolPipe)
+        withExtramural?: boolean,
+    ) {
+        return { items: await this.ystuService.getInstitutes(withExtramural) };
     }
 
     @Get('schedule/groups')
     @ApiOperation({ summary: 'List of available groups' })
+    @ApiQuery({
+        name: 'extramural',
+        description: 'Append groups of extramural education.',
+        type: Boolean,
+        required: false,
+    })
     @ApiResponse({
         status: 200,
         schema: {
@@ -120,8 +135,13 @@ export class YSTUController {
             },
         },
     })
-    async getGroups() {
-        return { items: await this.ystuService.getGroups() };
+    async getGroups(
+        @Query('extramural', new DefaultValuePipe(false), ParseBoolPipe)
+        withExtramural?: boolean,
+    ) {
+        return {
+            items: await this.ystuService.getGroups(true, withExtramural),
+        };
     }
 
     @ApiOperation({ summary: 'Get a schedule for the specified group' })

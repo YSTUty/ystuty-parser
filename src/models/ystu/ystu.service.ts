@@ -22,6 +22,7 @@ export class YSTUService implements OnModuleInit {
 
     public isLoaded = false;
     public instituteLinks: IInstituteData[] = [];
+    public extramuralLinks: IInstituteData[] = [];
 
     async onModuleInit() {
         this.logger.log('Start initializing provider...');
@@ -32,7 +33,8 @@ export class YSTUService implements OnModuleInit {
     }
 
     public async init() {
-        this.instituteLinks = await this.ystuProvider.getInstituteLinks();
+        [this.instituteLinks, this.extramuralLinks] =
+            await this.ystuProvider.getRaspZLinks();
 
         // ...
         this.isLoaded = true;
@@ -46,39 +48,63 @@ export class YSTUService implements OnModuleInit {
         return this.ystuProvider.authorizedUser;
     }
 
-    public async getInstitutes() {
+    public async getInstitutes(withExtramural = false) {
         if (!this.isLoaded) {
             throw new BadRequestException('wait for app initialization');
         }
 
-        return this.instituteLinks.map((e) => ({
-            name: e.name,
-            groups: e.groups.map((e) => e.name),
-        }));
+        return [
+            ...this.instituteLinks.map((e) => ({
+                name: e.name,
+                groups: e.groups.map((e) => e.name),
+            })),
+            ...(withExtramural
+                ? this.extramuralLinks.map((e) => ({
+                      name: e.name,
+                      groups: e.groups.map((e) => e.name),
+                  }))
+                : []),
+        ];
     }
 
-    public getGroups(onlyNames?: true): Promise<string[]>;
-    public getGroups(onlyNames: false): Promise<
+    public getGroups(onlyNames?: true, withExams?: boolean): Promise<string[]>;
+    public getGroups(
+        onlyNames: false,
+        withExams?: boolean,
+    ): Promise<
         {
             link: string;
             linkLecture?: string;
             name: string;
         }[]
     >;
-    public async getGroups(onlyNames = true) {
+    public async getGroups(onlyNames = true, withExtramural = false) {
         if (!this.isLoaded) {
             throw new BadRequestException('wait for app initialization');
         }
 
-        return this.instituteLinks.reduce(
-            (prev: string[], list) => [
-                ...prev,
-                ...list.groups.map(({ name, ...links }) =>
-                    onlyNames ? name : { name, ...links },
-                ),
-            ],
-            [],
-        );
+        return [
+            ...this.instituteLinks.reduce(
+                (prev: string[], list) => [
+                    ...prev,
+                    ...list.groups.map(({ name, ...links }) =>
+                        onlyNames ? name : { name, ...links },
+                    ),
+                ],
+                [],
+            ),
+            ...(withExtramural
+                ? this.extramuralLinks.reduce(
+                      (prev: string[], list) => [
+                          ...prev,
+                          ...list.groups.map(({ name, ...links }) =>
+                              onlyNames ? name : { name, ...links },
+                          ),
+                      ],
+                      [],
+                  )
+                : []),
+        ];
     }
 
     public getScheduleByGroup(
@@ -100,7 +126,7 @@ export class YSTUService implements OnModuleInit {
             }
         }
 
-        const groupInfo = (await this.getGroups(false)).find(
+        const groupInfo = (await this.getGroups(false, true)).find(
             (e) => e.name.toLowerCase() === name.toLowerCase(),
         );
         if (!groupInfo) {

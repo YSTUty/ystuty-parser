@@ -235,23 +235,33 @@ export class YSTUProvider {
 
     //
 
-    public async getInstituteLinks() {
+    public async getRaspZLinks() {
         const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
             useCache: true,
         });
 
-        const linkToFullList = cherrioParser.getLink2FullList(
-            raspzResponse.data,
-        );
+        const [linkToFullList, linkToExtramural] =
+            cherrioParser.getLink2FullList(raspzResponse.data);
 
-        const raspzListResponse = await this.fetch(linkToFullList, {
-            useCache: true,
-        });
+        const [raspzListResponse, raspzListExtramuralResponse] =
+            await Promise.all([
+                this.fetch(linkToFullList, { useCache: true }),
+                this.fetch(linkToExtramural, { useCache: true }),
+            ]);
+
         const instituteLinks = cherrioParser.getInstituteLinks(
             raspzListResponse.data,
         );
         await cacheManager.update(['links', 'instituteLinks'], instituteLinks);
 
-        return instituteLinks;
+        const extramuralLinks = cherrioParser.getInstituteLinks(
+            raspzListExtramuralResponse.data,
+        );
+        await cacheManager.update(
+            ['links', 'extramuralLinks'],
+            extramuralLinks,
+        );
+
+        return [instituteLinks, extramuralLinks] as const;
     }
 }

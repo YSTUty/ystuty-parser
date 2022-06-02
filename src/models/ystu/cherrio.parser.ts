@@ -18,10 +18,11 @@ export const getName = (html: string) => {
 
 export const getLink2FullList = (html: string) => {
     const $ = cheerio.load(html);
-    const link = `/WPROG/rasp/${$(
-        '#tab1 > tbody > tr:nth-child(1) > td:nth-child(1) > a',
-    ).attr('href')}`;
-    return link;
+    const getLink = (index = 1) =>
+        `/WPROG/rasp/${$(
+            `#tab1 > tbody > tr:nth-child(${index}) > td:nth-child(1) > a`,
+        ).attr('href')}`;
+    return [getLink(), getLink(2)] as const;
 };
 
 export const getInstituteLinks = (html: string) => {
@@ -84,14 +85,23 @@ export const getSchedule = async (html: string, short = false) => {
     const days: MixedDay[] = [];
     const tables = $('table.sortm').toArray();
     for (const table of tables) {
+        const [dayName, lessonDateStr] = $(table)
+            .parent()
+            .find('center')
+            .text()
+            ?.split(' ');
         const data = ($(table) as any).parsetable(
             false,
             true,
             true,
         ) as string[][];
-        const weekName =
-            $(table).parent().find('center').text()?.toLowerCase() || null;
-        const day = scheduleParser.parseWeekDay(data, weekName);
+
+        const dayNameLower = dayName?.toLowerCase() || null;
+        const day = scheduleParser.parseWeekDay(
+            data,
+            dayNameLower,
+            lessonDateStr,
+        );
         days.push(day);
     }
 
