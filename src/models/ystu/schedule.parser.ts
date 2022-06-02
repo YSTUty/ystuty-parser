@@ -386,6 +386,9 @@ export const splitToWeeks = (
     allDays: MixedDay[],
     semesterStartDate?: Date | string | number,
 ) => {
+    const offsetWeek =
+        getWeekNumber(semesterStartDate ?? getStartDateOfSemester()) - 1;
+
     if (allDays.some((day) => day.info.dateStr)) {
         const weeks: OneWeek[] = [];
 
@@ -406,23 +409,20 @@ export const splitToWeeks = (
                 splitWeekDays[week] = [];
             }
             lastWeekType = day.info.type;
+            day.info.weekNumber = getWeekNumber(day.info.date) - offsetWeek;
             splitWeekDays[week].push(day);
         }
 
         for (const days of splitWeekDays) {
-            // const days = splitLessonsDayByWeekNumber(weekDays, null);
             setDaysDate(days, null);
 
-            weeks.push({ number: null, days });
+            weeks.push({ number: days[0].info.weekNumber, days });
         }
         return weeks;
     }
 
     const minWeek = getMinWeekNumber(allDays);
     const maxWeek = getMaxWeekNumber(allDays);
-
-    const offsetWeek =
-        getWeekNumber(semesterStartDate ?? getStartDateOfSemester()) - 1;
     const weeks: OneWeek[] = [];
 
     for (let number = minWeek; number < maxWeek + 1; ++number) {
