@@ -19,9 +19,11 @@ export const getName = (html: string) => {
 export const getLink2FullList = (html: string) => {
     const $ = cheerio.load(html);
     const getLink = (index = 1) =>
-        `/WPROG/rasp/${$(
-            `#tab1 > tbody > tr:nth-child(${index}) > td:nth-child(1) > a`,
-        ).attr('href')}`;
+        ((e) => e && `/WPROG/rasp/${e}`)(
+            $(
+                `#tab1 > tbody > tr:nth-child(${index}) > td:nth-child(1) > a`,
+            ).attr('href'),
+        );
     return [getLink(), getLink(2)] as const;
 };
 

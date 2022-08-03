@@ -7,8 +7,10 @@ import * as Iconv from 'iconv-lite';
 import { cacheManager, md5 } from '@my-common';
 import * as xEnv from '@my-environment';
 
-import { COOKIES_FILE, YSTU_URL } from './ystu.constants';
 import * as cherrioParser from './cherrio.parser';
+import { InstituteLinkType } from '@my-interfaces';
+
+export const COOKIES_FILE = 'cookies';
 
 @Injectable()
 export class YSTUProvider {
@@ -27,7 +29,7 @@ export class YSTUProvider {
     } = null;
 
     constructor(private readonly httpService: HttpService) {
-        httpService.axiosRef.defaults.baseURL = YSTU_URL;
+        httpService.axiosRef.defaults.baseURL = xEnv.YSTU_URL;
         httpService.axiosRef.interceptors.request.use((config) => {
             if (!config.url.toLowerCase().includes('/WPROG/'.toLowerCase())) {
                 return config;
@@ -245,22 +247,33 @@ export class YSTUProvider {
 
         const [raspzListResponse, raspzListExtramuralResponse] =
             await Promise.all([
-                this.fetch(linkToFullList, { useCache: true }),
-                this.fetch(linkToExtramural, { useCache: true }),
+                linkToFullList &&
+                    this.fetch(linkToFullList, { useCache: true }),
+                linkToExtramural &&
+                    this.fetch(linkToExtramural, { useCache: true }),
             ]);
 
-        const instituteLinks = cherrioParser.getInstituteLinks(
-            raspzListResponse.data,
-        );
-        await cacheManager.update(['links', 'instituteLinks'], instituteLinks);
+        let instituteLinks: InstituteLinkType[] = [];
+        if (raspzListResponse) {
+            instituteLinks = cherrioParser.getInstituteLinks(
+                raspzListResponse.data,
+            );
+            await cacheManager.update(
+                ['links', 'instituteLinks'],
+                instituteLinks,
+            );
+        }
 
-        const extramuralLinks = cherrioParser.getInstituteLinks(
-            raspzListExtramuralResponse.data,
-        );
-        await cacheManager.update(
-            ['links', 'extramuralLinks'],
-            extramuralLinks,
-        );
+        let extramuralLinks: InstituteLinkType[] = [];
+        if (raspzListExtramuralResponse) {
+            extramuralLinks = cherrioParser.getInstituteLinks(
+                raspzListExtramuralResponse.data,
+            );
+            await cacheManager.update(
+                ['links', 'extramuralLinks'],
+                extramuralLinks,
+            );
+        }
 
         return [instituteLinks, extramuralLinks] as const;
     }

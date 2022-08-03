@@ -66,3 +66,12 @@ export enum WeekNumberType {
     Saturday,
     Sunday = 6,
 }
+
+export type InstituteLinkType = {
+    name: string;
+    groups: {
+        name: string;
+        link: string;
+        linkLecture: string;
+    }[];
+};

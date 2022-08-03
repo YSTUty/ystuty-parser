@@ -28,6 +28,8 @@ export const SERVER_PORT: number = +process.env.SERVER_PORT || 8080;
 export const SERVER_URL: string =
     process.env.SERVER_URL || `http://${APP_DOMAIN}:${SERVER_PORT}`;
 
+export const YSTU_URL: string = process.env.YSTU_URL || 'https://www.ystu.ru';
+
 // // Postgres
 // export const POSTGRES_LOGGING: boolean = process.env.POSTGRES_LOGGING === 'true';
 // export const POSTGRES_HOST: string = process.env.POSTGRES_HOST || '127.0.0.1';
