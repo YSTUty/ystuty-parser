@@ -30,6 +30,10 @@ export const SERVER_URL: string =
 
 export const YSTU_URL: string = process.env.YSTU_URL || 'https://www.ystu.ru';
 
+// ? What will happen after the overflow of 9999?
+export const YSTU_RASPZ_ID: number = +process.env.YSTU_RASPZ_ID || null;
+export const YSTU_RASPZ_ID_EXTRA: number = +process.env.YSTU_RASPZ_ID_EXTRA || null;
+
 // // Postgres
 // export const POSTGRES_LOGGING: boolean = process.env.POSTGRES_LOGGING === 'true';
 // export const POSTGRES_HOST: string = process.env.POSTGRES_HOST || '127.0.0.1';

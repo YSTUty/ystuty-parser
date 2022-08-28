@@ -238,12 +238,24 @@ export class YSTUProvider {
     //
 
     public async getRaspZLinks() {
-        const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
-            useCache: true,
-        });
+        let linkToFullList: string = null;
+        let linkToExtramural: string = null;
+        if (!xEnv.YSTU_RASPZ_ID && !xEnv.YSTU_RASPZ_ID_EXTRA) {
+            const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
+                useCache: true,
+            });
 
-        const [linkToFullList, linkToExtramural] =
-            cherrioParser.getLink2FullList(raspzResponse.data);
+            [linkToFullList, linkToExtramural] = cherrioParser.getLink2FullList(
+                raspzResponse.data,
+            );
+        } else {
+            linkToFullList =
+                xEnv.YSTU_RASPZ_ID &&
+                `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID}xxx`;
+            linkToExtramural =
+                xEnv.YSTU_RASPZ_ID_EXTRA &&
+                `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID_EXTRA}xxx`;
+        }
 
         const [raspzListResponse, raspzListExtramuralResponse] =
             await Promise.all([
@@ -255,8 +267,13 @@ export class YSTUProvider {
 
         let instituteLinks: InstituteLinkType[] = [];
         if (raspzListResponse) {
-            instituteLinks = cherrioParser.getInstituteLinks(
+            const response = cherrioParser.getInstituteLinks(
                 raspzListResponse.data,
+            );
+            instituteLinks = response.links;
+            let scheduleName = response.name;
+            this.logger.log(
+                `Getting schedule for "instituteLinks": ${scheduleName}`,
             );
             await cacheManager.update(
                 ['links', 'instituteLinks'],
@@ -266,8 +283,13 @@ export class YSTUProvider {
 
         let extramuralLinks: InstituteLinkType[] = [];
         if (raspzListExtramuralResponse) {
-            extramuralLinks = cherrioParser.getInstituteLinks(
+            const response = cherrioParser.getInstituteLinks(
                 raspzListExtramuralResponse.data,
+            );
+            extramuralLinks = response.links;
+            let scheduleName = response.name;
+            this.logger.log(
+                `Getting schedule for "extramuralLinks": ${scheduleName}`,
             );
             await cacheManager.update(
                 ['links', 'extramuralLinks'],

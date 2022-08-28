@@ -74,7 +74,11 @@ export const getInstituteLinks = (html: string) => {
         }
     }
 
-    return instituteLinks;
+    const name = $(
+        'body > div.WidthLimiter > div.Content > div.RightContentColumn > div > div > div.hidetext > font',
+    ).text();
+
+    return { name, links: instituteLinks };
 };
 
 export const getSchedule = async (html: string, short = false) => {
