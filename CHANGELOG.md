@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/yaponyal/ystuty-parser/compare/v0.0.4...v0.0.5) (2022-08-28)
+
+
+### 🚀 Features
+
+* **parser:** improved lessons parsing ([b7159a0](https://github.com/yaponyal/ystuty-parser/commit/b7159a0aab4257809ddcd062f84a5db8731cbe0f))
+* **provider:** added customizing `IDraspz` value ([137c757](https://github.com/yaponyal/ystuty-parser/commit/137c757d1b6f8049efe533a0c6fba8b925e60a1b))
+* updated ystu summer ([b92e214](https://github.com/yaponyal/ystuty-parser/commit/b92e214338f7da0d92b391beee8fd8901f2e3182))
+
 ### [0.0.4](https://github.com/yaponyal/ystuty-parser/compare/v0.0.3...v0.0.4) (2022-06-02)
 
 
