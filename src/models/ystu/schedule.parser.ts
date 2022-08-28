@@ -72,15 +72,25 @@ export const parseDayLesson = (str: string[]) => {
     // *
     const lessonName = _title.trim();
 
+    // TODO: add more support condiitions
+    // * => 'лаб. 4ч по п/г пр.з.4ч, с 8н лаб'
+    // * => 'лек. пр.з., с 16н.лаб.4ч,'
+    // * => 'лек. TEAMS пр.з.,'
+    // * => 'лек. TEAMS пр.з.+ лаб., +,'
+    // * => 'лаб.* по п/г 3-5н. пр.з.4ч,'
+    // * => 'лек. 4ч пр.з.4ч+,'
+
     const typeRegExp = new RegExp(
-        '(?<types>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?)?(?<star>\\*)?' +
+        '(?<types>teams|лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?)?(?<star>\\*)?' +
             '( ?(?<duration>[0-9]+)ч)?' +
             '( ?(?<delim>по п\\/г))?' +
-            '(,? ?(?<types2>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
-            '(,? ?(?<types3>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
-            '(,? ?(?<types4>лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
-            '(,? ?\\(\\+(?<types5>лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\))?' +
-            ',?' +
+            '( ?(?<online>\\(онлайн\\)))?' +
+            '(,? ?(\\+ ?)?(?<types2>teams|лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?(\\+ ?)?(?<types3>teams|лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?(\\+ ?)?(?<types4>teams|лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?(\\+ ?)?(?<types5>teams|лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?\\(\\+(?<types6>teams|лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\))?' +
+            ',?\\+?' +
             '( ?(?<subInfo>.*))?',
         'i',
     );
@@ -93,6 +103,7 @@ export const parseDayLesson = (str: string[]) => {
     const duration = Number(typeGroups.duration) || 2;
     const isStream = !!typeGroups.star;
     const isDivision = !!typeGroups.delim;
+    const isOnline = !!typeGroups.online;
     const subInfo = typeGroups.subInfo;
 
     const durationMinutes = ((f) => f * 90 + (f - 1) * 10)(
@@ -114,12 +125,13 @@ export const parseDayLesson = (str: string[]) => {
     // * time
     const time = `${timeInfo.start}-${timeInfo.end || endTime || timeInfo.ff}`;
 
-    const type: LessonFlags = [
+    let type: LessonFlags = [
         typeGroups.types || '',
         typeGroups.types2 || '',
         typeGroups.types3 || '',
         typeGroups.types4 || '',
         typeGroups.types5 || '',
+        typeGroups.types6 || '',
     ]
         .flatMap((e) => e.split(','))
         .map((e) => e.trim().toLowerCase())
@@ -149,6 +161,34 @@ export const parseDayLesson = (str: string[]) => {
     const teacherName = _teacher.trim() || null;
 
     const startAt = null;
+
+    const subInfoLower = subInfo?.toLowerCase();
+    if (subInfoLower) {
+        let libraryStrings = [subInfoLower, lessonName.toLowerCase()];
+        if (
+            libraryStrings.some(
+                (str) =>
+                    str.includes('библ.') ||
+                    str.includes('библиот') ||
+                    str.includes('книговыдача'),
+            )
+        ) {
+            type |= LessonFlags.Library;
+        }
+    }
+
+    if (subInfoLower?.includes('teams') || isOnline) {
+        if (rangeDist.length === 0) {
+            rangeDist = [...range];
+        }
+    }
+
+    if (type === LessonFlags.None) {
+        // TODO: add more combinations
+        if (lessonName.includes('исследовательская работа')) {
+            type |= LessonFlags.ResearchWork;
+        }
+    }
 
     return {
         number,
