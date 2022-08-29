@@ -144,6 +144,31 @@ export class YSTUController {
         };
     }
 
+    @Get('schedule/count')
+    @ApiOperation({ summary: 'List of available amount of data' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                institutes: {
+                    type: 'number',
+                    example: 8,
+                },
+                groups: {
+                    type: 'number',
+                    example: 256,
+                },
+            },
+        },
+    })
+    async getCount() {
+        return {
+            institutes: (await this.ystuService.getInstitutes(true)).length,
+            groups: (await this.ystuService.getGroups(true, true)).length,
+        };
+    }
+
     @ApiOperation({ summary: 'Get a schedule for the specified group' })
     @Get('schedule/group/:name')
     @ApiParam({
