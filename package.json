@@ -6,12 +6,12 @@
   "private": true,
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/yaponyal/ystuty-parser.git",
+    "url": "https://github.com/YSTUty/ystuty-parser.git",
     "type": "git"
   },
-  "homepage": "https://github.com/yaponyal/ystuty-parser#readme",
+  "homepage": "https://github.com/YSTUty/ystuty-parser#readme",
   "bugs": {
-    "url": "https://github.com/yaponyal/ystuty-parser/issues"
+    "url": "https://github.com/YSTUty/ystuty-parser/issues"
   },
   "scripts": {
     "prebuild": "rimraf dist",
