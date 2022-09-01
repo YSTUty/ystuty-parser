@@ -11,7 +11,6 @@ export class CalendarController {
 
     constructor(private readonly calendarService: CalendarService) {}
 
-    @Get('/file/:groupName.ical')
     @Get('/group/:groupName.ical')
     @ApiOperation({ summary: 'Get an ical file for importing calendar events' })
     @ApiParam({
