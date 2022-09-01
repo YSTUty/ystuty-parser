@@ -326,17 +326,17 @@ const getDateByWeek = (
 
 const getWeekDayTypeByName = (str: string) => {
     str = str.toLocaleLowerCase();
-    return str.startsWith('пон')
+    return str.startsWith('пон') || str === 'пн'
         ? WeekNumberType.Monday
-        : str.startsWith('втор')
+        : str.startsWith('втор') || str === 'вт'
         ? WeekNumberType.Tuesday
-        : str.startsWith('сред')
+        : str.startsWith('сред') || str === 'ср'
         ? WeekNumberType.Wednesday
-        : str.startsWith('чет')
+        : str.startsWith('чет') || str === 'чт'
         ? WeekNumberType.Thursday
-        : str.startsWith('пят')
+        : str.startsWith('пят') || str === 'пт'
         ? WeekNumberType.Friday
-        : str.startsWith('суб')
+        : str.startsWith('суб') || str === 'сб'
         ? WeekNumberType.Saturday
         : WeekNumberType.Sunday;
 };
