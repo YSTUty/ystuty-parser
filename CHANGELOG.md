@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/YSTUty/ystuty-parser/compare/v0.0.5...v0.0.6) (2022-09-01)
+
+
+### 🌟 Feature Improvements
+
+* **parser:** getting week type by short name ([be8caa5](https://github.com/YSTUty/ystuty-parser/commit/be8caa5d8c533ff72f2d1b18e71f428eb4f0a095))
+
+
+### 🐛 Bug Fixes
+
+* **parser:** fixred calculating `durationMinutes` ([0ee2b2f](https://github.com/YSTUty/ystuty-parser/commit/0ee2b2f4274c87af94d01e23358ade3ef2e4a5af))
+* **provider:** fixed fetch post data by `FormData` ([3f5c7e1](https://github.com/YSTUty/ystuty-parser/commit/3f5c7e139400a8f06b879efeec13c0653deade2a))
+
+
+### 🚀 Features
+
+* added license file ([732a5ca](https://github.com/YSTUty/ystuty-parser/commit/732a5cadbc8a259b5ba6a0cabe5ffaf02dec8979))
+* **calendar:** added generating teacher ical ([8401755](https://github.com/YSTUty/ystuty-parser/commit/840175530eef63c0b56aee9d04c10292b3cf6aab))
+* **controller:** added `teachers` to count route ([ab8ab8d](https://github.com/YSTUty/ystuty-parser/commit/ab8ab8de2e476f905447c48db9257e4cd4ce5114))
+* **controller:** added route to get amount of available schedule data ([a715cb5](https://github.com/YSTUty/ystuty-parser/commit/a715cb5524f546bc6bd1bc2740ba7c11715b32e8))
+* **controller:** added swagger docs for teacher ([4f80828](https://github.com/YSTUty/ystuty-parser/commit/4f808288534088ff0df6bbe67d6b6962f4f38a5a))
+* **project:** updated main links and logo ([11ee304](https://github.com/YSTUty/ystuty-parser/commit/11ee304362b4a4a9e6f1e8fea16f4aefb00c96d6))
+* **teacher:** added schedule parsing for teachers ([6b933fc](https://github.com/YSTUty/ystuty-parser/commit/6b933fcbc14c8bf57167e83ef25a83ce73e778bd))
+
+
+### 🧹 Chore
+
+* **calendar:** removed `/file` deprecated route for group ([82747a4](https://github.com/YSTUty/ystuty-parser/commit/82747a4b88c352684df7e1f70ae8bafa02eaab06))
+* **controller:** added app version route ([68ff916](https://github.com/YSTUty/ystuty-parser/commit/68ff9168de52b61cf3c20e3e55c1439f700fc3ef))
+* **deps:** updated ([6525ea2](https://github.com/YSTUty/ystuty-parser/commit/6525ea24021c4a99e7df74ac2cd64f73a39317bb))
+
 ### [0.0.5](https://github.com/yaponyal/ystuty-parser/compare/v0.0.4...v0.0.5) (2022-08-28)
 
 
