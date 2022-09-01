@@ -1,3 +1,5 @@
+import * as moment from 'moment';
+
 import { LessonFlags, WeekNumberType, WeekParityType } from '@my-interfaces';
 import { Lesson } from './entity/lesson.entity';
 import { MixedDay } from './entity/mixed-day.entity';
@@ -18,7 +20,7 @@ export const parseRange = (str: string) => {
 const RegExpWeek =
     /((?<weekParity>ч|н)\/н )?((?<weekRange>[,\-0-9]+)н)( \((?<weekDistParity>(ч|н)\/н )?((?<weekDistRange>[,\-0-9]+)н) дистант\))?/i;
 const RegExpTime =
-    /(?<number>[0-9])\. (?<start>[0-9:]{4,5})-((?<end>[0-9:]{4,5})?([.]{3}(?<ff>[0-9]{1,3})ч)?)/i;
+    /(?<number>[0-9])\. (?<start>[0-9:]{4,5})-((?<end>[0-9:]{4,5})?([.]{3}(?<duration>[0-9]{1,3})ч)?)/i;
 
 export const parseDayLesson = (str: string[]) => {
     const [_time, _weeks, _title, _type, _audit, _teacher] = str;
@@ -95,35 +97,41 @@ export const parseDayLesson = (str: string[]) => {
         'i',
     );
 
-    const typeGroups =
-        _type.match(
-            typeRegExp,
-            // /(?<types>лекция|лек\.|лаб\.|пр\.з\.?|кп\.?)?(?<star>\*)?( ?(?<duration>[0-9]+)ч)?( ?(?<delim>по п\/г))?( ?(?<subInfo>.*))?/i,
-        ).groups || {};
+    const typeGroups = _type.match(typeRegExp).groups || {};
     const duration = Number(typeGroups.duration) || 2;
     const isStream = !!typeGroups.star;
     const isDivision = !!typeGroups.delim;
     const isOnline = !!typeGroups.online;
     const subInfo = typeGroups.subInfo;
 
-    const durationMinutes = ((f) => f * 90 + (f - 1) * 10)(
+    let durationMinutes = ((f) => f * 90 + (f - 1) * 10)(
         Math.floor(duration / 2),
     );
 
-    const dateTime = new Date(0);
     const ds = timeInfo.start.split(':').map(Number);
-    dateTime.setHours(ds[0], ds[1]);
-    dateTime.setMinutes(dateTime.getMinutes() + durationMinutes);
-    const endTime = `${dateTime
-        .getHours()
-        .toString()
-        .padStart(2, '0')}:${dateTime
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}`;
+
+    // 1 08:30-10:00
+    // 2 10:10-11:40 * +30
+    // 4 12:20-13:50
+    // 5 14:00-15:30
+    // 6 15:40-17:10 * +10
+    // 7 17:30-19:00
+    // 8 19:10-20:40
+    if (duration > 2) {
+        const dm = ds[0] * 60 + ds[1];
+        durationMinutes +=
+            dm > 11 * 60 + 40 - durationMinutes && dm < 12 * 60 + 20 ? 30 : 0;
+        durationMinutes +=
+            dm > 17 * 60 + 10 - durationMinutes && dm < 17 * 60 + 30 ? 10 : 0;
+    }
+
+    const dateTime = moment(timeInfo.start, 'HH:mm').add(durationMinutes, 'm');
+    const endTime = dateTime.format('HH:mm');
 
     // * time
-    const time = `${timeInfo.start}-${timeInfo.end || endTime || timeInfo.ff}`;
+    const time = `${timeInfo.start}-${
+        timeInfo.end || endTime || timeInfo.duration
+    }`;
 
     let type: LessonFlags = [
         typeGroups.types || '',
