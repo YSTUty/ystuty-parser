@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/YSTUty/ystuty-parser/compare/v0.0.5...v0.0.6) (2022-09-01)
+
+
+### 🚀 Features
+
+* added license file ([732a5ca](https://github.com/YSTUty/ystuty-parser/commit/732a5cadbc8a259b5ba6a0cabe5ffaf02dec8979))
+* **controller:** added route to get amount of available schedule data ([a715cb5](https://github.com/YSTUty/ystuty-parser/commit/a715cb5524f546bc6bd1bc2740ba7c11715b32e8))
+* **project:** updated main links and logo ([11ee304](https://github.com/YSTUty/ystuty-parser/commit/11ee304362b4a4a9e6f1e8fea16f4aefb00c96d6))
+
+
+### 🌟 Feature Improvements
+
+* **parser:** getting week type by short name ([be8caa5](https://github.com/YSTUty/ystuty-parser/commit/be8caa5d8c533ff72f2d1b18e71f428eb4f0a095))
+
+
+### 🐛 Bug Fixes
+
+* **parser:** fixred calculating `durationMinutes` ([0ee2b2f](https://github.com/YSTUty/ystuty-parser/commit/0ee2b2f4274c87af94d01e23358ade3ef2e4a5af))
+* **provider:** fixed fetch post data by `FormData` ([3f5c7e1](https://github.com/YSTUty/ystuty-parser/commit/3f5c7e139400a8f06b879efeec13c0653deade2a))
+
 ### [0.0.5](https://github.com/yaponyal/ystuty-parser/compare/v0.0.4...v0.0.5) (2022-08-28)
 
 
