@@ -3,12 +3,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import * as Iconv from 'iconv-lite';
+import * as FormData from 'form-data';
 
-import { cacheManager, md5 } from '@my-common';
 import * as xEnv from '@my-environment';
+import { cacheManager, md5 } from '@my-common';
+import { InstituteLinkType } from '@my-interfaces';
 
 import * as cherrioParser from './cherrio.parser';
-import { InstituteLinkType } from '@my-interfaces';
 
 export const COOKIES_FILE = 'cookies';
 
@@ -136,8 +137,13 @@ export class YSTUProvider {
         }
 
         if (method !== 'GET') {
-            const params = new URLSearchParams(postData);
-            axiosConfig.data = params;
+            if (postData instanceof FormData) {
+                axiosConfig.headers = postData.getHeaders(axiosConfig.headers);
+                axiosConfig.data = postData.getBuffer();
+            } else {
+                const params = new URLSearchParams(postData);
+                axiosConfig.data = params.toString();
+            }
         }
 
         if (this.cookies) {
