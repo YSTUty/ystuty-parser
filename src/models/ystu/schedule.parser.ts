@@ -1,8 +1,12 @@
+import * as cheerio from 'cheerio';
+import * as moment from 'moment';
 import { LessonFlags, WeekNumberType, WeekParityType } from '@my-interfaces';
+
 import { Lesson } from './entity/lesson.entity';
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneDay } from './entity/one-day.entity';
 import { OneWeek } from './entity/one-week.entity';
+import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const parseRange = (str: string) => {
     return JSON.parse(
@@ -473,4 +477,137 @@ export const splitToWeeks = (
     }
 
     return weeks;
+};
+
+export const parseTeacherDayCherrio = (
+    $: cheerio.CheerioAPI,
+    row: cheerio.Element,
+) => {
+    const $row = $(row);
+    // * (1) Нед.
+    const weekNumber = Number($row.find('td:nth-child(1)').text()) || null;
+    // * (2) Дата
+    const dateStr =
+        $row.find('td:nth-child(2)').text()?.trim().split(' ') || null;
+    // * (3) Пара (номер и время)
+    // const time = $row.find('td:nth-child(3) > font').text()?.trim() || null;
+    const timeStr = $row.find('td:nth-child(3)').text()?.trim() || null;
+    // * (4) Группа
+    const groups =
+        $row.find('td:nth-child(4)').text()?.trim().split(' ') || null;
+    // * (5) Дисциплина
+    const lessonName = $row.find('td:nth-child(5)').text()?.trim() || null;
+    // * (6) Вид занятий
+    const lessonTypeStr =
+        $row
+            .find('td:nth-child(6)')
+            .text()
+            .replace(/ +(?= )/g, '')
+            .trim() || null;
+    // * (7) Аудитория
+    const auditoryName = $row.find('td:nth-child(7)').text()?.trim() || null;
+    // * (8) Преподаватели
+    // const teacherName = $row.find('td:nth-child(8)').text()?.trim() || null;
+
+    const [number, timeRange] = (([a, b]) => [Number(a), b])(
+        timeStr?.split(' '),
+    );
+
+    const durationMinutes = 90;
+    const durationHours = ((d) => Math.round((d + 10) / 50))(durationMinutes);
+    const startAt = moment(
+        `${dateStr[0]} ${timeRange.split('-')[0]}`,
+        'DD.MM hh:mm',
+    )
+        .utc()
+        .toDate();
+    const endAt = new Date(
+        startAt.getTime() + durationMinutes * 60e3,
+    ).toISOString();
+
+    //
+
+    const typeRegExp = new RegExp(
+        '' +
+            '(,? ?(\\+ ?)?(?<types2>teams|лекция|лек\\.|лаб\\.|пр\\.з\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.зач\\.?|экз\\.?))?' +
+            '(,? ?\\(?(\\+ ?)?(?<types3>teams|лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\)?)?' +
+            '(,? ?\\(?(\\+ ?)?(?<types4>teams|лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\)?)?' +
+            '(,? ?\\(?(\\+ ?)?(?<types5>teams|лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\)?)?' +
+            '(,? ?\\(?(\\+ ?)?(?<types6>teams|лекция|лек\\.?|лаб\\.?|пр\\.?з?\\.?|кп\\.?|конс\\.?|зач\\.?|диф\\.?зач\\.?|экз\\.?)\\)?)?',
+        'i',
+    );
+
+    const typeGroups = lessonTypeStr.match(typeRegExp).groups || {};
+
+    // const lessonType = lessonTypeStr
+    //     .replace(/[()]/g, '')
+    //     .replace(/ +(?= )/g, '')
+    //     .split(',')
+    //     .flatMap((e) => e.toLowerCase().split('+'))
+    //     .map((e) => e.trim())
+    //     .filter(Boolean);
+    //     .reduce(...);
+
+    let lessonType: LessonFlags = [
+        typeGroups.types2 || '',
+        typeGroups.types3 || '',
+        typeGroups.types4 || '',
+        typeGroups.types5 || '',
+        typeGroups.types6 || '',
+    ]
+        .flatMap((e) => e.split(','))
+        .map((e) => e.trim().toLowerCase())
+        .reduce(
+            (prev, type) =>
+                (prev |= type.includes('пр' /* 'пр.з' */)
+                    ? LessonFlags.Practical
+                    : type.includes('лек')
+                    ? LessonFlags.Lecture
+                    : type.includes('лаб')
+                    ? LessonFlags.Labaratory
+                    : type.includes('кп')
+                    ? LessonFlags.CourseProject
+                    : type.includes('конс')
+                    ? LessonFlags.Consultation
+                    : type.includes('диф')
+                    ? LessonFlags.DifferentiatedTest
+                    : type.includes('зач')
+                    ? LessonFlags.Test
+                    : type.includes('экз')
+                    ? LessonFlags.Exam
+                    : LessonFlags.None),
+            LessonFlags.None,
+        );
+
+    return {
+        number,
+        timeRange,
+        startAt,
+        endAt,
+        ...(auditoryName?.toLocaleLowerCase() === 'дистант' && {
+            isDistant: true,
+        }),
+        lessonName,
+        lessonType,
+        weekNumber,
+        duration: durationHours,
+        // weekName: dateStr[1],
+        // weekType: dateStr[1] ? getWeekDayTypeByName(dateStr[1]) : null,
+        // date,
+        // dateStr: dateStr[0],
+        groups,
+        auditoryName,
+    } as TeacherLesson;
+};
+
+export const parseTeacherDays = (data: string[][]) => {
+    const schedule: TeacherLesson[] = [];
+
+    const [titles, ...lessonsStrArr] = data[0]
+        .map((_, i) => data.map((row) => row[i]))
+        .filter((e) => e.some(Boolean));
+
+    // TODO: add merging of duplicate lessons
+
+    return schedule;
 };

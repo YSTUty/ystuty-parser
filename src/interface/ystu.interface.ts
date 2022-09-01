@@ -77,3 +77,14 @@ export type InstituteLinkType = {
         linkLecture: string;
     }[];
 };
+
+export interface ITeacherData {
+    id: number;
+    teacherName: string;
+    days: string[];
+    formData: {
+        idprep: number;
+        datt0: string;
+        datt1: string;
+    };
+}

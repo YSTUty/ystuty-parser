@@ -221,4 +221,19 @@ export class YSTUController {
     ) {
         return this.ystuService.getScheduleByGroup(name, short);
     }
+
+    @Get('schedule/teachers')
+    @ApiOperation({ summary: 'List of available teachers' })
+    async getTeachers() {
+        return {
+            items: await this.ystuService.getTeachers(),
+        };
+    }
+
+    @Get('schedule/teacher/:teacherNameOrId')
+    @ApiOperation({ summary: 'Get a schedule for the specified teacher' })
+    async getByTeacher(@Param('teacherNameOrId') nameOrId: string) {
+        const data = await this.ystuService.getScheduleByTeacher(nameOrId);
+        return data;
+    }
 }
