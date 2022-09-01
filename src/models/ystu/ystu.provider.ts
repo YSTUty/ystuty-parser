@@ -305,4 +305,30 @@ export class YSTUProvider {
 
         return [instituteLinks, extramuralLinks] as const;
     }
+
+    public async getTeachers() {
+        const postData = new FormData();
+        // TODO: improve it?
+        const year = new Date().getFullYear();
+        postData.append('datt0', `01.08.${year}`);
+        postData.append('datt1', `31.10.${year + 1}`);
+        postData.append('rprep', '');
+
+        const raspz_prepResponse = await this.fetch(
+            '/WPROG/rasp/raspz_prep.php',
+            {
+                useCache: true,
+                method: 'POST',
+                postData,
+                axiosConfig: { timeout: 10e3 },
+            },
+        );
+        const html = raspz_prepResponse?.data;
+
+        const teachersData = await cherrioParser.getTeachersScheduleFormData(
+            html,
+        );
+
+        return teachersData;
+    }
 }

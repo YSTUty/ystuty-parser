@@ -14,13 +14,13 @@ import { YSTUService } from '../ystu/ystu.service';
 export class CalendarService {
     constructor(private readonly ystuServiec: YSTUService) {}
 
-    public async generateCalenadr(groupName: string) {
+    public async generateCalenadrForGroup(groupName: string) {
         const schedule = await this.ystuServiec.getScheduleByGroup(groupName);
 
         const calendar = ical()
             .name(`YSTUty [${groupName}]`)
             .url(xEnv.SERVER_URL)
-            .source(`${xEnv.SERVER_URL}/calendar/${groupName}.ical`)
+            .source(`${xEnv.SERVER_URL}/calendar/group/${groupName}.ical`)
             .prodId({
                 company: 'YSTUty',
                 product: `${xEnv.APP_NAME} Schedule`,
@@ -77,6 +77,67 @@ export class CalendarService {
                     }
                 }
             }
+        }
+
+        return calendar;
+    }
+
+    public async generateCalenadrForTeacher(teacherId: number) {
+        const { teacher, items: schedule } =
+            await this.ystuServiec.getScheduleByTeacher(teacherId);
+
+        const calendar = ical()
+            .name(`YSTUty [${teacher.name}]`)
+            .url(xEnv.SERVER_URL)
+            .source(`${xEnv.SERVER_URL}/calendar/teacher/${teacherId}.ical`)
+            .prodId({
+                company: 'YSTUty',
+                product: `${xEnv.APP_NAME} Teacher Schedule`,
+                language: 'RU',
+            })
+            .scale('gregorian')
+            .method(ICalCalendarMethod.PUBLISH)
+            .timezone('Europe/Moscow')
+            .description(
+                `Расписание занятий ЯГТУ для преподавателя ${teacher.name}`,
+            )
+            .ttl(60 * 60);
+
+        for (const lesson of schedule) {
+            calendar
+                .createEvent({
+                    // id: `Z-${week.number}-${day.info.type}-${lesson.number}`,
+                    // busystatus: ICalEventBusyStatus.BUSY,
+                })
+                .start(moment(lesson.startAt))
+                .end(moment(lesson.endAt))
+                .summary(
+                    `${lesson.isDistant ? '(🖥) ' : ''}[${getLessonTypeStrArr(
+                        lesson.lessonType,
+                    ).join('|')}] ${lesson.lessonName} [${
+                        lesson.auditoryName
+                    }]`,
+                )
+                .description(
+                    `[${lesson.auditoryName}]${
+                        lesson.isDistant ? ' (Дистант)' : ''
+                    } Групп${
+                        lesson.groups.length > 1 ? 'а' : 'ы'
+                    } (${lesson.groups.join(', ')})`,
+                )
+                // .alarms([
+                //     { type: ICalAlarmType.display, trigger: 60 * 30 },
+                // ])
+                .status(ICalEventStatus.CONFIRMED)
+                .transparency(ICalEventTransparency.OPAQUE)
+                .location({
+                    title: `${lesson.auditoryName}`,
+                    address: `Ярославль, ЯГТУ${
+                        lesson.auditoryName
+                            ? `, Корпус ${lesson.auditoryName.split('-')[0]}`
+                            : ''
+                    }`,
+                });
         }
 
         return calendar;

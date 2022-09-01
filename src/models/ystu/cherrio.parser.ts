@@ -1,9 +1,11 @@
 import * as cheerio from 'cheerio';
 import * as chTableParser from 'cheerio-tableparser';
+import { ITeacherData } from '@my-interfaces';
 
 import * as scheduleParser from './schedule.parser';
 
 import { MixedDay } from './entity/mixed-day.entity';
+import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const getName = (html: string) => {
     const $ = cheerio.load(html);
@@ -112,4 +114,50 @@ export const getSchedule = async (html: string, short = false) => {
     }
 
     return short ? days : scheduleParser.splitToWeeks(days, semesterStartDate);
+};
+
+export const getTeachersScheduleFormData = async (html: string) => {
+    const $ = cheerio.load(html);
+    const rows = $('#tab1 > tbody > tr').toArray();
+
+    const teachers: ITeacherData[] = [];
+    for (const row of rows) {
+        const $row = $(row);
+        const days = $row.find('td:nth-child(4)').text().split(' ');
+
+        const $form = $row.find('td:nth-child(2) > form');
+        const teacherName = $form.find('a').text();
+        const idprep = Number($form.find('input[name="idprep"]').val()) || null;
+        const datt0 = $form.find('input[name="datt0"]').val() as string;
+        const datt1 = $form.find('input[name="datt1"]').val() as string;
+        // const link = $form.attr('action');
+
+        teachers.push({
+            id: idprep,
+            teacherName,
+            days,
+            // TODO: don't save datt's
+            formData: { idprep, datt0, datt1 },
+        });
+    }
+    return teachers;
+};
+
+export const getTeacherSchedule = async (html: string) => {
+    const $ = cheerio.load(html);
+    // chTableParser($);
+    // const data = ($('#tab1') as any).parsetable(
+    //     false,
+    //     true,
+    //     true,
+    // ) as string[][];
+    // const schedule = scheduleParser.parseTeacherDays(data);
+
+    const rows = $('#tab1 > tbody > tr').toArray();
+    const schedule: TeacherLesson[] = [];
+    for (const row of rows) {
+        const day = scheduleParser.parseTeacherDayCherrio($, row);
+        schedule.push(day);
+    }
+    return schedule;
 };

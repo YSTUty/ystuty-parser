@@ -5,7 +5,7 @@ import {
     NotFoundException,
     OnModuleInit,
 } from '@nestjs/common';
-import { IInstituteData } from '@my-interfaces';
+import { IInstituteData, ITeacherData } from '@my-interfaces';
 import { cacheManager } from '@my-common';
 
 import { YSTUProvider } from './ystu.provider';
@@ -24,6 +24,8 @@ export class YSTUService implements OnModuleInit {
     public instituteLinks: IInstituteData[] = [];
     public extramuralLinks: IInstituteData[] = [];
 
+    public teachersData: ITeacherData[] = [];
+
     async onModuleInit() {
         this.logger.log('Start initializing provider...');
         await this.ystuProvider.init();
@@ -35,6 +37,8 @@ export class YSTUService implements OnModuleInit {
     public async init() {
         [this.instituteLinks, this.extramuralLinks] =
             await this.ystuProvider.getRaspZLinks();
+
+        this.teachersData = await this.ystuProvider.getTeachers();
 
         // ...
         this.isLoaded = true;
@@ -159,5 +163,44 @@ export class YSTUService implements OnModuleInit {
         await cacheManager.update(file, items, 86400);
 
         return { isCache: false, items };
+    }
+
+    public async getTeachers() {
+        return this.teachersData.map((e) => ({
+            id: e.formData.idprep,
+            name: e.teacherName,
+        }));
+    }
+
+    public async getScheduleByTeacher(nameOrId: string | number) {
+        let teacher: ITeacherData = null;
+        if (typeof nameOrId === 'number' || !isNaN(Number(nameOrId))) {
+            teacher = this.teachersData.find((e) => e.id === Number(nameOrId));
+        } else {
+            teacher = this.teachersData.find((e) =>
+                e.teacherName.toLowerCase().includes(nameOrId.toLowerCase()),
+            );
+        }
+
+        if (!teacher) {
+            throw new NotFoundException('teacher not found by this name or id');
+        }
+
+        const raspz_prep1Response = await this.ystuProvider.fetch(
+            '/WPROG/rasp/raspz_prep1.php',
+            {
+                useCache: true,
+                method: 'POST',
+                postData: teacher.formData,
+                axiosConfig: { timeout: 10e3 },
+            },
+        );
+
+        const html = raspz_prep1Response?.data;
+        const teacherSchedule = await cherrioParser.getTeacherSchedule(html);
+        return {
+            teacher: { id: teacher.id, name: teacher.teacherName },
+            items: teacherSchedule,
+        };
     }
 }
