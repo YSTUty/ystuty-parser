@@ -3,6 +3,8 @@ import { RealIP } from 'nestjs-real-ip';
 
 import { AppService } from './app.service';
 
+const { version } = require('../../../package.json');
+
 @Controller('/app')
 export class AppController {
     public readonly timeStart = Date.now();
@@ -17,5 +19,10 @@ export class AppController {
     @Get('uptime')
     getTime() {
         return `uptime:${Date.now() - this.timeStart}`;
+    }
+
+    @Get('v')
+    getVersion() {
+        return { version };
     }
 }
