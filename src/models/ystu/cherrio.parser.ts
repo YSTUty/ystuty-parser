@@ -36,7 +36,7 @@ export const getInstituteLinks = (html: string) => {
         groups: {
             name: string;
             link: string;
-            linkLecture: string;
+            linksLecture: string[];
         }[];
     }[] = [];
 
@@ -61,14 +61,13 @@ export const getInstituteLinks = (html: string) => {
 
             const groups = contentHTML.toArray().map((el) => {
                 const name = $(el).text();
+                const linkLecture = (
+                    lectureLinks.find((e) => e.name.slice(0, -3) === name) || {}
+                ).link;
                 return {
                     name,
                     link: '/WPROG/rasp/' + $(el).attr('href'),
-                    linkLecture: (
-                        lectureLinks.find(
-                            (e) => e.name.slice(0, -3) === name,
-                        ) || {}
-                    ).link,
+                    linksLecture: linkLecture ? [linkLecture] : [],
                 };
             });
 

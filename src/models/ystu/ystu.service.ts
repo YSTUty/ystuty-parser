@@ -78,7 +78,7 @@ export class YSTUService implements OnModuleInit {
     ): Promise<
         {
             link: string;
-            linkLecture?: string;
+            linksLecture?: string[];
             name: string;
         }[]
     >;
@@ -146,17 +146,19 @@ export class YSTUService implements OnModuleInit {
         );
 
         const scheduleLectureData: (OneWeek | MixedDay)[] = [];
-        if (groupInfo.linkLecture) {
-            const scheduleLectureResponse = await this.ystuProvider.fetch(
-                groupInfo.linkLecture,
-                { useCache: false },
-            );
-            scheduleLectureData.push(
-                ...(await cherrioParser.getSchedule(
-                    scheduleLectureResponse.data,
-                    short,
-                )),
-            );
+        if (groupInfo.linksLecture?.length > 0) {
+            for (const link of groupInfo.linksLecture) {
+                const scheduleLectureResponse = await this.ystuProvider.fetch(
+                    link,
+                    { useCache: false },
+                );
+                scheduleLectureData.push(
+                    ...(await cherrioParser.getSchedule(
+                        scheduleLectureResponse.data,
+                        short,
+                    )),
+                );
+            }
         }
 
         const items = [...scheduleLectureData, ...scheduleData];

@@ -25,9 +25,9 @@ export interface IGroupData {
      */
     link: string;
     /**
-     * Ссылка на расписание лекционной недели группы
+     * Ссылки на расписание лекционной недели группы
      */
-    linkLecture?: string;
+    linksLecture?: string[];
 }
 
 /**
@@ -74,7 +74,7 @@ export type InstituteLinkType = {
     groups: {
         name: string;
         link: string;
-        linkLecture: string;
+        linksLecture: string[];
     }[];
 };
 

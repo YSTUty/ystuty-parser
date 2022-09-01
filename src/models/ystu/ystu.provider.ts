@@ -246,6 +246,8 @@ export class YSTUProvider {
     public async getRaspZLinks() {
         let linkToFullList: string = null;
         let linkToExtramural: string = null;
+        let linkToAdditionalLecture: string = null;
+
         if (!xEnv.YSTU_RASPZ_ID && !xEnv.YSTU_RASPZ_ID_EXTRA) {
             const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
                 useCache: true,
@@ -263,13 +265,21 @@ export class YSTUProvider {
                 `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID_EXTRA}xxx`;
         }
 
-        const [raspzListResponse, raspzListExtramuralResponse] =
-            await Promise.all([
-                linkToFullList &&
-                    this.fetch(linkToFullList, { useCache: true }),
-                linkToExtramural &&
-                    this.fetch(linkToExtramural, { useCache: true }),
-            ]);
+        if (xEnv.YSTU_RASPZ_ID_LECTURE_ADDITIONAL) {
+            linkToAdditionalLecture = `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID_LECTURE_ADDITIONAL}xxx`;
+        }
+
+        const [
+            raspzListResponse,
+            raspzListExtramuralResponse,
+            raspzListAdditionalLectureResponse,
+        ] = await Promise.all([
+            linkToFullList && this.fetch(linkToFullList, { useCache: true }),
+            linkToExtramural &&
+                this.fetch(linkToExtramural, { useCache: true }),
+            linkToAdditionalLecture &&
+                this.fetch(linkToAdditionalLecture, { useCache: true }),
+        ]);
 
         let instituteLinks: InstituteLinkType[] = [];
         if (raspzListResponse) {
@@ -281,6 +291,39 @@ export class YSTUProvider {
             this.logger.log(
                 `Getting schedule for "instituteLinks": ${scheduleName}`,
             );
+
+            if (raspzListAdditionalLectureResponse) {
+                try {
+                    const response = cherrioParser.getInstituteLinks(
+                        raspzListAdditionalLectureResponse.data,
+                    );
+                    const instituteLinks2 = response.links;
+                    let scheduleName = response.name;
+                    this.logger.log(
+                        `Getting additional lecture schedule for "instituteLinks": ${scheduleName}`,
+                    );
+                    for (const institute2 of instituteLinks2) {
+                        const institute = instituteLinks.find(
+                            (e) => e.name === institute2.name,
+                        );
+                        if (institute) {
+                            for (const group2 of institute2.groups) {
+                                const group = institute.groups.find(
+                                    (e) => e.name === group2.name,
+                                );
+                                if (group) {
+                                    group.linksLecture.push(group2.link);
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    this.logger.warn(
+                        'Error on getting additional lecture schedule',
+                    );
+                    this.logger.error(err);
+                }
+            }
             await cacheManager.update(
                 ['links', 'instituteLinks'],
                 instituteLinks,

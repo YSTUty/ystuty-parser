@@ -32,6 +32,8 @@ export const YSTU_URL: string = process.env.YSTU_URL || 'https://www.ystu.ru';
 
 // ? What will happen after the overflow of 9999?
 export const YSTU_RASPZ_ID: number = +process.env.YSTU_RASPZ_ID || null;
+export const YSTU_RASPZ_ID_LECTURE_ADDITIONAL: number =
+    +process.env.YSTU_RASPZ_ID_LECTURE_ADDITIONAL || null;
 export const YSTU_RASPZ_ID_EXTRA: number = +process.env.YSTU_RASPZ_ID_EXTRA || null;
 
 // // Postgres
