@@ -172,9 +172,9 @@ export class YSTUService implements OnModuleInit {
         }));
     }
 
-    public async getScheduleByTeacher(nameOrId: string) {
+    public async getScheduleByTeacher(nameOrId: string | number) {
         let teacher: ITeacherData = null;
-        if (!isNaN(Number(nameOrId)) /* typeof nameOrId === 'number' */) {
+        if (typeof nameOrId === 'number' || !isNaN(Number(nameOrId))) {
             teacher = this.teachersData.find((e) => e.id === Number(nameOrId));
         } else {
             teacher = this.teachersData.find((e) =>
