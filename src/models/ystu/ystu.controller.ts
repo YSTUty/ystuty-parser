@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneWeek } from './entity/one-week.entity';
+import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 import { YSTUService } from './ystu.service';
 
@@ -52,6 +53,31 @@ export class YSTUController {
     // For debug
     getMe() {
         return this.ystuService.getMe();
+    }
+
+    @Get('schedule/count')
+    @ApiOperation({ summary: 'List of available amount of data' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                institutes: {
+                    type: 'number',
+                    example: 8,
+                },
+                groups: {
+                    type: 'number',
+                    example: 256,
+                },
+            },
+        },
+    })
+    async getCount() {
+        return {
+            institutes: (await this.ystuService.getInstitutes(true)).length,
+            groups: (await this.ystuService.getGroups(true, true)).length,
+        };
     }
 
     @Get('schedule/institutes')
@@ -144,33 +170,8 @@ export class YSTUController {
         };
     }
 
-    @Get('schedule/count')
-    @ApiOperation({ summary: 'List of available amount of data' })
-    @ApiResponse({
-        status: 200,
-        schema: {
-            type: 'object',
-            properties: {
-                institutes: {
-                    type: 'number',
-                    example: 8,
-                },
-                groups: {
-                    type: 'number',
-                    example: 256,
-                },
-            },
-        },
-    })
-    async getCount() {
-        return {
-            institutes: (await this.ystuService.getInstitutes(true)).length,
-            groups: (await this.ystuService.getGroups(true, true)).length,
-        };
-    }
-
-    @ApiOperation({ summary: 'Get a schedule for the specified group' })
     @Get('schedule/group/:name')
+    @ApiOperation({ summary: 'Get a schedule for the specified group' })
     @ApiParam({
         name: 'name',
         description: 'Group name',
@@ -224,6 +225,31 @@ export class YSTUController {
 
     @Get('schedule/teachers')
     @ApiOperation({ summary: 'List of available teachers' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                items: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'number' },
+                            name: { type: 'string' },
+                        },
+                    },
+                    example: [
+                        { id: 1, name: 'Иванов Иван Иванович' },
+                        { id: 2, name: 'Петров Петр Петрович' },
+                        { id: 3, name: 'Сидоров Сидор Сидорович' },
+                        { id: 4, name: 'Семенов Семен Семенович' },
+                        { id: 5, name: 'Павлов Павел Павлович' },
+                    ],
+                },
+            },
+        },
+    })
     async getTeachers() {
         return {
             items: await this.ystuService.getTeachers(),
@@ -232,6 +258,27 @@ export class YSTUController {
 
     @Get('schedule/teacher/:teacherNameOrId')
     @ApiOperation({ summary: 'Get a schedule for the specified teacher' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                isCache: { type: 'boolean' },
+                teacher: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'number' },
+                        name: { type: 'string' },
+                    },
+                },
+                items: {
+                    type: 'array',
+                    items: { $ref: getSchemaPath(TeacherLesson) },
+                },
+            },
+        },
+    })
+    @ApiExtraModels(TeacherLesson)
     async getByTeacher(@Param('teacherNameOrId') nameOrId: string) {
         const data = await this.ystuService.getScheduleByTeacher(nameOrId);
         return data;

@@ -1,4 +1,5 @@
 import { LessonFlags } from '@my-interfaces';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class TeacherLesson {
     /**
@@ -24,6 +25,7 @@ export class TeacherLesson {
     /**
      * Пара дистанционно
      */
+    @ApiProperty({ type: Boolean })
     isDistant?: true;
     /**
      * Название предмета пары
