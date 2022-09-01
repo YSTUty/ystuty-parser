@@ -62,14 +62,9 @@ export class YSTUController {
         schema: {
             type: 'object',
             properties: {
-                institutes: {
-                    type: 'number',
-                    example: 8,
-                },
-                groups: {
-                    type: 'number',
-                    example: 256,
-                },
+                institutes: { type: 'number', example: 8 },
+                groups: { type: 'number', example: 256 },
+                teachers: { type: 'number', example: 460 },
             },
         },
     })
@@ -77,6 +72,7 @@ export class YSTUController {
         return {
             institutes: (await this.ystuService.getInstitutes(true)).length,
             groups: (await this.ystuService.getGroups(true, true)).length,
+            teachers: (await this.ystuService.getTeachers()).length,
         };
     }
 
