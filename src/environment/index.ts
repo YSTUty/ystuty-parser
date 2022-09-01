@@ -36,6 +36,9 @@ export const YSTU_RASPZ_ID_LECTURE_ADDITIONAL: number =
     +process.env.YSTU_RASPZ_ID_LECTURE_ADDITIONAL || null;
 export const YSTU_RASPZ_ID_EXTRA: number = +process.env.YSTU_RASPZ_ID_EXTRA || null;
 
+export const YSTU_DISABLE_USERINFO: boolean =
+    process.env.YSTU_DISABLE_USERINFO === 'true';
+
 // // Postgres
 // export const POSTGRES_LOGGING: boolean = process.env.POSTGRES_LOGGING === 'true';
 // export const POSTGRES_HOST: string = process.env.POSTGRES_HOST || '127.0.0.1';

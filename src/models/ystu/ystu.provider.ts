@@ -86,7 +86,9 @@ export class YSTUProvider {
                 useCache: false,
             });
             this.authorizedUser = cherrioParser.getName(lkstudResponse.data);
-            this.logger.debug('Authorized user', this.authorizedUser);
+            if (!xEnv.YSTU_DISABLE_USERINFO) {
+                this.logger.debug('Authorized user', this.authorizedUser);
+            }
         } catch (err) {
             this.logger.error(err);
         }

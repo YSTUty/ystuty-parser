@@ -2,6 +2,7 @@ import {
     Controller,
     DefaultValuePipe,
     Get,
+    HttpException,
     Param,
     ParseBoolPipe,
     Query,
@@ -15,6 +16,7 @@ import {
     ApiTags,
     getSchemaPath,
 } from '@nestjs/swagger';
+import * as xEnv from '@my-environment';
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneWeek } from './entity/one-week.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
@@ -52,6 +54,9 @@ export class YSTUController {
     })
     // For debug
     getMe() {
+        if (xEnv.YSTU_DISABLE_USERINFO) {
+            throw new HttpException('User info is disabled', 403);
+        }
         return this.ystuService.getMe();
     }
 
