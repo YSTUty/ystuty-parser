@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.8](https://github.com/YSTUty/ystuty-parser/compare/v0.0.7...v0.0.8) (2022-09-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **parser:** It is necessary to clear cache. The previous cache may contain an outdated format
+
+### 🚀 Features
+
+* added env option to disable getting user info ([d555985](https://github.com/YSTUty/ystuty-parser/commit/d55598556463737996801a93a980787aa4810a2a))
+* **parser:** added support multi lecture links ([37742a7](https://github.com/YSTUty/ystuty-parser/commit/37742a73c8315241f74245b2df542c047e94c906))
+
 ### [0.0.7](https://github.com/YSTUty/ystuty-parser/compare/v0.0.5...v0.0.7) (2022-09-01)
 
 
