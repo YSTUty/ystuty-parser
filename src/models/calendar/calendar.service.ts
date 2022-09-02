@@ -46,20 +46,26 @@ export class CalendarService {
                             `${
                                 lesson.isDistant ? '(🖥) ' : ''
                             }[${getLessonTypeStrArr(lesson.type).join('|')}] ${
-                                lesson.lessonName
-                            } [${lesson.auditoryName}]`,
+                                lesson.lessonName || lesson.subInfo
+                            }${((e) => (e ? ` [${e}]` : ''))(
+                                lesson.auditoryName,
+                            )}`,
                         )
                         .description(
-                            `[${lesson.auditoryName}]${
-                                lesson.isDistant ? ' (Дистант)' : ''
-                            } ${lesson.teacherName}`,
+                            `${((e) => (e ? `[${e}]` : ''))(
+                                lesson.auditoryName,
+                            )}${lesson.isDistant ? ' (Дистант)' : ''} ${
+                                lesson.teacherName
+                            }`,
                         )
                         // .alarms([
                         //     { type: ICalAlarmType.display, trigger: 60 * 30 },
                         // ])
                         .status(ICalEventStatus.CONFIRMED)
-                        .transparency(ICalEventTransparency.OPAQUE)
-                        .location({
+                        .transparency(ICalEventTransparency.OPAQUE);
+
+                    if (lesson.auditoryName) {
+                        event.location({
                             title: `${lesson.auditoryName}`,
                             address: `Ярославль, ЯГТУ${
                                 lesson.auditoryName
@@ -69,6 +75,7 @@ export class CalendarService {
                                     : ''
                             }`,
                         });
+                    }
                     if (lesson.teacherName) {
                         event.organizer({
                             name: lesson.teacherName,
@@ -104,7 +111,7 @@ export class CalendarService {
             .ttl(60 * 60);
 
         for (const lesson of schedule) {
-            calendar
+            const event = calendar
                 .createEvent({
                     // id: `Z-${week.number}-${day.info.type}-${lesson.number}`,
                     // busystatus: ICalEventBusyStatus.BUSY,
@@ -114,12 +121,11 @@ export class CalendarService {
                 .summary(
                     `${lesson.isDistant ? '(🖥) ' : ''}[${getLessonTypeStrArr(
                         lesson.lessonType,
-                    ).join('|')}] ${lesson.lessonName} [${
-                        lesson.auditoryName
-                    }]`,
+                    ).join('|')}] ${lesson.lessonName}${((e) =>
+                        e ? ` [${e}]` : '')(lesson.auditoryName)}`,
                 )
                 .description(
-                    `[${lesson.auditoryName}]${
+                    `${((e) => (e ? `[${e}]` : ''))(lesson.auditoryName)}${
                         lesson.isDistant ? ' (Дистант)' : ''
                     } Групп${
                         lesson.groups.length > 1 ? 'а' : 'ы'
@@ -129,8 +135,9 @@ export class CalendarService {
                 //     { type: ICalAlarmType.display, trigger: 60 * 30 },
                 // ])
                 .status(ICalEventStatus.CONFIRMED)
-                .transparency(ICalEventTransparency.OPAQUE)
-                .location({
+                .transparency(ICalEventTransparency.OPAQUE);
+            if (lesson.auditoryName) {
+                event.location({
                     title: `${lesson.auditoryName}`,
                     address: `Ярославль, ЯГТУ${
                         lesson.auditoryName
@@ -138,6 +145,7 @@ export class CalendarService {
                             : ''
                     }`,
                 });
+            }
         }
 
         return calendar;
