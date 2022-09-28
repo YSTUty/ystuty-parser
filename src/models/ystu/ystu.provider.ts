@@ -376,4 +376,29 @@ export class YSTUProvider {
 
         return teachersData;
     }
+
+    public async getAuditories() {
+        const postData = new FormData();
+        // TODO: improve it?
+        const year = new Date().getFullYear();
+        postData.append('datt0', `01.08.${year}`);
+        postData.append('datt1', `31.10.${year + 1}`);
+        postData.append('raudi', '');
+
+        const raspz_prepResponse = await this.fetch(
+            '/WPROG/rasp/raspz_prep.php',
+            {
+                useCache: true,
+                method: 'POST',
+                postData,
+                axiosConfig: { timeout: 10e3 },
+            },
+        );
+        const html = raspz_prepResponse?.data;
+
+        const auditoriesData =
+            await cherrioParser.getAuditoriesScheduleFormData(html);
+
+        return auditoriesData;
+    }
 }

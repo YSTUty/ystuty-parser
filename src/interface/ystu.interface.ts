@@ -88,3 +88,9 @@ export interface ITeacherData {
         datt1: string;
     };
 }
+
+export interface IAuditoryData {
+    id: number;
+    name: string;
+    days: string[];
+}

@@ -6,6 +6,7 @@ import { Lesson } from './entity/lesson.entity';
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneDay } from './entity/one-day.entity';
 import { OneWeek } from './entity/one-week.entity';
+import { AuditoryLesson } from './entity/auditory-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const parseRange = (str: string) => {
@@ -485,9 +486,23 @@ export const splitToWeeks = (
     return weeks;
 };
 
-export const parseTeacherDayCherrio = (
+type ParseTeacherDayCherrio = {
+    (
+        $: cheerio.CheerioAPI,
+        row: cheerio.Element,
+        byAuditories?: boolean,
+    ): TeacherLesson;
+    (
+        $: cheerio.CheerioAPI,
+        row: cheerio.Element,
+        byAuditories: true,
+    ): AuditoryLesson;
+};
+
+export const parseTeacherDayCherrio = ((
     $: cheerio.CheerioAPI,
     row: cheerio.Element,
+    byAuditories = false,
 ) => {
     const $row = $(row);
     // * (1) Нед.
@@ -513,7 +528,7 @@ export const parseTeacherDayCherrio = (
     // * (7) Аудитория
     const auditoryName = $row.find('td:nth-child(7)').text()?.trim() || null;
     // * (8) Преподаватели
-    // const teacherName = $row.find('td:nth-child(8)').text()?.trim() || null;
+    const teacherName = $row.find('td:nth-child(8)').text()?.trim() || null;
 
     const [number, timeRange] = (([a, b]) => [Number(a), b])(
         timeStr?.split(' '),
@@ -585,7 +600,7 @@ export const parseTeacherDayCherrio = (
             LessonFlags.None,
         );
 
-    return {
+    const payload = {
         number,
         timeRange,
         startAt,
@@ -595,16 +610,23 @@ export const parseTeacherDayCherrio = (
         }),
         lessonName,
         lessonType,
-        weekNumber,
         duration: durationHours,
         // weekName: dateStr[1],
         // weekType: dateStr[1] ? getWeekDayTypeByName(dateStr[1]) : null,
         // date,
         // dateStr: dateStr[0],
         groups,
-        auditoryName,
-    } as TeacherLesson;
-};
+    };
+
+    if (byAuditories) {
+        payload['teacherName'] = teacherName;
+        return payload as AuditoryLesson;
+    }
+
+    payload['weekNumber'] = weekNumber;
+    payload['auditoryName'] = auditoryName;
+    return payload as TeacherLesson;
+}) as ParseTeacherDayCherrio;
 
 export const parseTeacherDays = (data: string[][]) => {
     const schedule: TeacherLesson[] = [];

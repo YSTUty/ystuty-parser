@@ -17,8 +17,10 @@ import {
     getSchemaPath,
 } from '@nestjs/swagger';
 import * as xEnv from '@my-environment';
+
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneWeek } from './entity/one-week.entity';
+import { AuditoryLesson } from './entity/auditory-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 import { YSTUService } from './ystu.service';
@@ -282,6 +284,67 @@ export class YSTUController {
     @ApiExtraModels(TeacherLesson)
     async getByTeacher(@Param('teacherNameOrId') nameOrId: string) {
         const data = await this.ystuService.getScheduleByTeacher(nameOrId);
+        return data;
+    }
+
+    @Get('schedule/auditories')
+    @ApiOperation({ summary: 'List of available auditories' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                items: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: { type: 'number' },
+                            name: { type: 'string' },
+                        },
+                    },
+                    example: [
+                        { id: 1, name: 'Г-777' },
+                        { id: 2, name: 'А-202' },
+                    ],
+                },
+                count: {
+                    type: 'number',
+                    example: 2,
+                },
+            },
+        },
+    })
+    async getAuditories() {
+        const items = await this.ystuService.getAuditories();
+        return { items, count: items.length };
+    }
+
+    @Get('schedule/auditory/:nameOrId')
+    @ApiOperation({ summary: 'Get a schedule for the specified auditory' })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                isCache: { type: 'boolean' },
+                auditory: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'number' },
+                        name: { type: 'string' },
+                    },
+                },
+                items: {
+                    type: 'array',
+                    items: { $ref: getSchemaPath(AuditoryLesson) },
+                },
+            },
+        },
+    })
+    @ApiExtraModels(AuditoryLesson)
+    async getByAuditory(@Param('nameOrId') nameOrId: string) {
+        const data = await this.ystuService.getScheduleByAuditory(nameOrId);
         return data;
     }
 }

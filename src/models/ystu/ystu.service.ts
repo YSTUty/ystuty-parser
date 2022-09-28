@@ -5,7 +5,7 @@ import {
     NotFoundException,
     OnModuleInit,
 } from '@nestjs/common';
-import { IInstituteData, ITeacherData } from '@my-interfaces';
+import { IInstituteData, ITeacherData, IAuditoryData } from '@my-interfaces';
 import { cacheManager } from '@my-common';
 
 import { YSTUProvider } from './ystu.provider';
@@ -25,6 +25,7 @@ export class YSTUService implements OnModuleInit {
     public extramuralLinks: IInstituteData[] = [];
 
     public teachersData: ITeacherData[] = [];
+    public auditoriesData: IAuditoryData[] = [];
 
     async onModuleInit() {
         this.logger.log('Start initializing provider...');
@@ -39,6 +40,7 @@ export class YSTUService implements OnModuleInit {
             await this.ystuProvider.getRaspZLinks();
 
         this.teachersData = await this.ystuProvider.getTeachers();
+        this.auditoriesData = await this.ystuProvider.getAuditories();
 
         // ...
         this.isLoaded = true;
@@ -203,6 +205,54 @@ export class YSTUService implements OnModuleInit {
         return {
             teacher: { id: teacher.id, name: teacher.teacherName },
             items: teacherSchedule,
+        };
+    }
+
+    public async getAuditories() {
+        return this.auditoriesData.map((e) => ({ id: e.id, name: e.name }));
+    }
+
+    public async getScheduleByAuditory(nameOrId: string | number) {
+        let auditory: IAuditoryData = null;
+        if (typeof nameOrId === 'number' || !isNaN(Number(nameOrId))) {
+            auditory = this.auditoriesData.find(
+                (e) => e.id === Number(nameOrId),
+            );
+        } else {
+            auditory = this.auditoriesData.find((e) =>
+                e.name.toLowerCase().includes(nameOrId.toLowerCase()),
+            );
+        }
+
+        if (!auditory) {
+            throw new NotFoundException(
+                'auditory not found by this name or id',
+            );
+        }
+
+        // TODO: improve it?
+        const year = new Date().getFullYear();
+        const postData = {
+            datt0: `01.08.${year}`,
+            datt1: `31.10.${year + 1}`,
+            idaudi: auditory.id,
+        };
+
+        const raspz_prep1Response = await this.ystuProvider.fetch(
+            '/WPROG/rasp/raspz_prep1.php',
+            {
+                useCache: true,
+                method: 'POST',
+                postData,
+                axiosConfig: { timeout: 10e3 },
+            },
+        );
+
+        const html = raspz_prep1Response?.data;
+        const auditorySchedule = await cherrioParser.getAuditorySchedule(html);
+        return {
+            auditory: { id: auditory.id, name: auditory.name },
+            items: auditorySchedule,
         };
     }
 }
