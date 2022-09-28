@@ -126,19 +126,10 @@ export const getTeachersScheduleFormData = async (html: string) => {
         const days = $row.find('td:nth-child(4)').text().split(' ');
 
         const $form = $row.find('td:nth-child(2) > form');
-        const teacherName = $form.find('a').text();
+        const name = $form.find('a').text();
         const idprep = Number($form.find('input[name="idprep"]').val()) || null;
-        const datt0 = $form.find('input[name="datt0"]').val() as string;
-        const datt1 = $form.find('input[name="datt1"]').val() as string;
-        // const link = $form.attr('action');
 
-        teachers.push({
-            id: idprep,
-            teacherName,
-            days,
-            // TODO: don't save datt's
-            formData: { idprep, datt0, datt1 },
-        });
+        teachers.push({ id: idprep, name, days });
     }
     return teachers;
 };

@@ -80,13 +80,8 @@ export type InstituteLinkType = {
 
 export interface ITeacherData {
     id: number;
-    teacherName: string;
+    name: string;
     days: string[];
-    formData: {
-        idprep: number;
-        datt0: string;
-        datt1: string;
-    };
 }
 
 export interface IAuditoryData {

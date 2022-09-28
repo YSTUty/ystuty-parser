@@ -170,10 +170,7 @@ export class YSTUService implements OnModuleInit {
     }
 
     public async getTeachers() {
-        return this.teachersData.map((e) => ({
-            id: e.formData.idprep,
-            name: e.teacherName,
-        }));
+        return this.teachersData.map((e) => ({ id: e.id, name: e.name }));
     }
 
     public async getScheduleByTeacher(nameOrId: string | number) {
@@ -182,7 +179,7 @@ export class YSTUService implements OnModuleInit {
             teacher = this.teachersData.find((e) => e.id === Number(nameOrId));
         } else {
             teacher = this.teachersData.find((e) =>
-                e.teacherName.toLowerCase().includes(nameOrId.toLowerCase()),
+                e.name.toLowerCase().includes(nameOrId.toLowerCase()),
             );
         }
 
@@ -190,12 +187,15 @@ export class YSTUService implements OnModuleInit {
             throw new NotFoundException('teacher not found by this name or id');
         }
 
+        const { datt0, datt1 } = this.ystuProvider.getDatt();
+        const postData = { datt0, datt1, idprep: teacher.id };
+
         const raspz_prep1Response = await this.ystuProvider.fetch(
             '/WPROG/rasp/raspz_prep1.php',
             {
                 useCache: true,
                 method: 'POST',
-                postData: teacher.formData,
+                postData,
                 axiosConfig: { timeout: 10e3 },
             },
         );
@@ -203,7 +203,7 @@ export class YSTUService implements OnModuleInit {
         const html = raspz_prep1Response?.data;
         const teacherSchedule = await cherrioParser.getTeacherSchedule(html);
         return {
-            teacher: { id: teacher.id, name: teacher.teacherName },
+            teacher: { id: teacher.id, name: teacher.name },
             items: teacherSchedule,
         };
     }
@@ -230,13 +230,8 @@ export class YSTUService implements OnModuleInit {
             );
         }
 
-        // TODO: improve it?
-        const year = new Date().getFullYear();
-        const postData = {
-            datt0: `01.08.${year}`,
-            datt1: `31.10.${year + 1}`,
-            idaudi: auditory.id,
-        };
+        const { datt0, datt1 } = this.ystuProvider.getDatt();
+        const postData = { datt0, datt1, idaudi: auditory.id };
 
         const raspz_prep1Response = await this.ystuProvider.fetch(
             '/WPROG/rasp/raspz_prep1.php',

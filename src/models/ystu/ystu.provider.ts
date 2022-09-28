@@ -351,12 +351,21 @@ export class YSTUProvider {
         return [instituteLinks, extramuralLinks] as const;
     }
 
-    public async getTeachers() {
-        const postData = new FormData();
-        // TODO: improve it?
+    public getDatt() {
+        // TODO: improve it
         const year = new Date().getFullYear();
-        postData.append('datt0', `01.08.${year}`);
-        postData.append('datt1', `31.10.${year + 1}`);
+        const month = new Date().getMonth() + 1;
+        return {
+            datt0: month > 7 ? `01.08.${year}` : `01.02.${year}`,
+            datt1: month > 7 ? `01.02.${year + 1}` : `01.08.${year}`,
+        };
+    }
+
+    public async getTeachers() {
+        const { datt0, datt1 } = this.getDatt();
+        const postData = new FormData();
+        postData.append('datt0', datt0);
+        postData.append('datt1', datt1);
         postData.append('rprep', '');
 
         const raspz_prepResponse = await this.fetch(
@@ -378,11 +387,10 @@ export class YSTUProvider {
     }
 
     public async getAuditories() {
+        const { datt0, datt1 } = this.getDatt();
         const postData = new FormData();
-        // TODO: improve it?
-        const year = new Date().getFullYear();
-        postData.append('datt0', `01.08.${year}`);
-        postData.append('datt1', `31.10.${year + 1}`);
+        postData.append('datt0', datt0);
+        postData.append('datt1', datt1);
         postData.append('raudi', '');
 
         const raspz_prepResponse = await this.fetch(
