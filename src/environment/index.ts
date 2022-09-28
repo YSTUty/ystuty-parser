@@ -19,7 +19,8 @@ export const NODE_ENV: EnvType =
     (process.env.NODE_ENV as EnvType) || EnvType.DEV;
 
 export const CACHE_PATH: string = process.env.CACHE_PATH || './.cache-store';
-export const INSTANCE_NAME: string = process.env.INSTANCE_NAME || 'ystuty-parser';
+export const INSTANCE_NAME: string =
+    process.env.INSTANCE_NAME || 'ystuty-parser';
 
 // Application
 export const APP_NAME: string = process.env.MAIN_NAME || 'YSTUty Parser';
@@ -34,7 +35,8 @@ export const YSTU_URL: string = process.env.YSTU_URL || 'https://www.ystu.ru';
 export const YSTU_RASPZ_ID: number = +process.env.YSTU_RASPZ_ID || null;
 export const YSTU_RASPZ_ID_LECTURE_ADDITIONAL: number =
     +process.env.YSTU_RASPZ_ID_LECTURE_ADDITIONAL || null;
-export const YSTU_RASPZ_ID_EXTRA: number = +process.env.YSTU_RASPZ_ID_EXTRA || null;
+export const YSTU_RASPZ_ID_EXTRA: number =
+    +process.env.YSTU_RASPZ_ID_EXTRA || null;
 
 export const YSTU_DISABLE_USERINFO: boolean =
     process.env.YSTU_DISABLE_USERINFO === 'true';
