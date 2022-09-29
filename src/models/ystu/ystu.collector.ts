@@ -1,10 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-    ITeacherData,
-    IAuditoryData,
-} from '@my-interfaces';
+import { ITeacherData, IAuditoryData } from '@my-interfaces';
 
 import { YSTUProvider } from './ystu.provider';
+import { AccumulativeSchedule } from './entity/accumulative-schedule.entity';
 
 @Injectable()
 export class YSTUCollector {
@@ -13,6 +11,7 @@ export class YSTUCollector {
 
     public teachersData: ITeacherData[] = [];
     public auditoriesData: IAuditoryData[] = [];
+    public accumulativeSchedule: AccumulativeSchedule[] = [];
 
     constructor(private readonly ystuProvider: YSTUProvider) {}
 
@@ -23,6 +22,7 @@ export class YSTUCollector {
         // } while (!this.ystuServiec.isLoaded);
 
         await this.startLoop();
+        this.startUpdater().then();
 
         this.logger.log('Collector started');
     }
@@ -65,6 +65,93 @@ export class YSTUCollector {
         };
         await loop(true);
     }
+
+    private async startUpdater() {
+        try {
+            for await (const queueAudiences of this[Symbol.asyncIterator]()) {
+                if (!queueAudiences) {
+                    continue;
+                }
+
+                const audiencesWithSchedule = await Promise.all(
+                    queueAudiences.map(async (audience) => ({
+                        ...audience,
+                        items: await this.ystuProvider.getScheduleByAuditory(
+                            audience.id,
+                            // true,
+                        ),
+                    })),
+                );
+
+                for (const { id, name, items } of audiencesWithSchedule) {
+                    const rec = this.accumulativeSchedule.find(
+                        (e) => e.id === id,
+                    );
+                    const time = new Date().getTime();
+                    if (!rec) {
+                        this.accumulativeSchedule.push({
+                            id,
+                            name,
+                            items,
+                            time,
+                        });
+                        continue;
+                    }
+
+                    // Update items
+                    rec.time = time;
+                    rec.items = items;
+                }
+            }
+        } finally {
+            this.logger.warn('Collector stopped');
+        }
+    }
+
+    private async *[Symbol.asyncIterator]() {
+        const chunk = <T>(arr: T[], size: number) =>
+            Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+                arr.slice(i * size, i * size + size),
+            );
+
+        let audiences: { id: number; name: string }[] = [];
+        let audienceChunks: typeof audiences[] = [];
+        do {
+            try {
+                if (audienceChunks.length === 0) {
+                    audiences = await this.getAuditories();
+                    // auditoryIds.sort();
+                    audiences.sort(() => Math.random() - 0.5);
+
+                    const auditoryIds = audiences.map((e) => e.id);
+                    // ? filter or use deleting in for?
+                    this.accumulativeSchedule =
+                        this.accumulativeSchedule.filter((e) =>
+                            auditoryIds.includes(e.id),
+                        );
+                    audienceChunks = chunk(audiences, 3);
+                }
+
+                //
+                const queueAudiences = audienceChunks.shift();
+                if (audienceChunks.length === 0) {
+                    // Cooldown for 5 minutes
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, 5 * 60 * 1e3),
+                    );
+                }
+
+                yield queueAudiences;
+            } catch (err) {
+                this.logger.error(err);
+            }
+
+            // Wait 10 second
+            await new Promise((resolve) => setTimeout(resolve, 10 * 1e3));
+        } while (!this.aborted);
+    }
+
+    //
 
     public async getTeachers() {
         return this.teachersData.map((e) => ({ id: e.id, name: e.name }));
@@ -122,5 +209,13 @@ export class YSTUCollector {
             bypassCache,
         );
         return { auditory: { id: auditory.id, name: auditory.name }, items };
+    }
+
+    public async getAccumulative() {
+        const items = this.accumulativeSchedule.map((e) => e);
+        const percent = Math.round(
+            (items.length / this.auditoriesData.length) * 100,
+        );
+        return { items, percent };
     }
 }

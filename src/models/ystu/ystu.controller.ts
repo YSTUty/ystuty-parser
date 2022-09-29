@@ -23,6 +23,7 @@ import { MixedDay } from './entity/mixed-day.entity';
 import { OneWeek } from './entity/one-week.entity';
 import { AuditoryLesson } from './entity/auditory-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
+import { AccumulativeSchedule } from './entity/accumulative-schedule.entity';
 
 import { YSTUService } from './ystu.service';
 import { YSTUCollector } from './ystu.collector';
@@ -361,5 +362,40 @@ export class YSTUController {
             );
         }
         return data;
+    }
+
+    @Get('schedule/accumulative')
+    @ApiOperation({
+        summary: 'List of available accumulative schedules by audiences',
+    })
+    @ApiResponse({
+        status: 200,
+        schema: {
+            type: 'object',
+            properties: {
+                items: {
+                    type: 'array',
+                    items: { $ref: getSchemaPath(AccumulativeSchedule) },
+                },
+                percent: {
+                    type: 'number',
+                    example: 5,
+                },
+                count: {
+                    type: 'number',
+                    example: 1,
+                },
+                total: {
+                    type: 'number',
+                    example: 20,
+                },
+            },
+        },
+    })
+    @ApiExtraModels(AccumulativeSchedule)
+    async getAccumulative() {
+        const audiences = await this.ystuCollector.getAuditories();
+        const data = await this.ystuCollector.getAccumulative();
+        return { ...data, count: data.items.length, total: audiences.length };
     }
 }

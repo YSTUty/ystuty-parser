@@ -1,3 +1,5 @@
+import { AuditoryLesson } from '../models/ystu/entity/auditory-lesson.entity';
+
 /**
  * Данные об институте
  */
