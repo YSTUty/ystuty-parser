@@ -1,7 +1,7 @@
 import { LessonFlags } from '@my-interfaces';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AuditoryLesson {
+export class AudienceLesson {
     /**
      * Порядковый номер пары на дню
      */

@@ -1,5 +1,3 @@
-import { AuditoryLesson } from '../models/ystu/entity/auditory-lesson.entity';
-
 /**
  * Данные об институте
  */
@@ -86,7 +84,7 @@ export interface ITeacherData {
     days: string[];
 }
 
-export interface IAuditoryData {
+export interface IAudienceData {
     id: number;
     name: string;
     days: string[];

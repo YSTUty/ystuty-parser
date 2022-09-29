@@ -6,7 +6,7 @@ import { Lesson } from './entity/lesson.entity';
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneDay } from './entity/one-day.entity';
 import { OneWeek } from './entity/one-week.entity';
-import { AuditoryLesson } from './entity/auditory-lesson.entity';
+import { AudienceLesson } from './entity/audience-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const parseRange = (str: string) => {
@@ -490,19 +490,19 @@ type ParseTeacherDayCherrio = {
     (
         $: cheerio.CheerioAPI,
         row: cheerio.Element,
-        byAuditories?: boolean,
+        byAudiences?: boolean,
     ): TeacherLesson;
     (
         $: cheerio.CheerioAPI,
         row: cheerio.Element,
-        byAuditories: true,
-    ): AuditoryLesson;
+        byAudiences: true,
+    ): AudienceLesson;
 };
 
 export const parseTeacherDayCherrio = ((
     $: cheerio.CheerioAPI,
     row: cheerio.Element,
-    byAuditories = false,
+    byAudiences = false,
 ) => {
     const $row = $(row);
     // * (1) Нед.
@@ -618,9 +618,9 @@ export const parseTeacherDayCherrio = ((
         groups,
     };
 
-    if (byAuditories) {
+    if (byAudiences) {
         payload['teacherName'] = teacherName;
-        return payload as AuditoryLesson;
+        return payload as AudienceLesson;
     }
 
     payload['weekNumber'] = weekNumber;

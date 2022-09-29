@@ -1,11 +1,11 @@
 import * as cheerio from 'cheerio';
 import * as chTableParser from 'cheerio-tableparser';
-import { IAuditoryData, ITeacherData } from '@my-interfaces';
+import { IAudienceData, ITeacherData } from '@my-interfaces';
 
 import * as scheduleParser from './schedule.parser';
 
 import { MixedDay } from './entity/mixed-day.entity';
-import { AuditoryLesson } from './entity/auditory-lesson.entity';
+import { AudienceLesson } from './entity/audience-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const getName = (html: string) => {
@@ -153,11 +153,11 @@ export const getTeacherSchedule = async (html: string) => {
     return schedule;
 };
 
-export const getAuditoriesScheduleFormData = async (html: string) => {
+export const getAudiencesScheduleFormData = async (html: string) => {
     const $ = cheerio.load(html);
     const rows = $('#tab1 > tbody > tr').toArray();
 
-    const auditories: IAuditoryData[] = [];
+    const audiences: IAudienceData[] = [];
     for (const row of rows) {
         const $row = $(row);
         const days = $row.find('td:nth-child(4)').text().split(' ');
@@ -166,16 +166,16 @@ export const getAuditoriesScheduleFormData = async (html: string) => {
         const name = $form.find('a').text();
         const id = Number($form.find('input[name="idaudi"]').val()) || null;
 
-        auditories.push({ id, name, days });
+        audiences.push({ id, name, days });
     }
-    return auditories;
+    return audiences;
 };
 
-export const getAuditorySchedule = async (html: string) => {
+export const getAudienceSchedule = async (html: string) => {
     const $ = cheerio.load(html);
 
     const rows = $('#tab1 > tbody > tr').toArray();
-    const schedule: AuditoryLesson[] = [];
+    const schedule: AudienceLesson[] = [];
     for (const row of rows) {
         const day = scheduleParser.parseTeacherDayCherrio($, row, true);
         schedule.push(day);

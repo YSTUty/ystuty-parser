@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ITeacherData, IAuditoryData } from '@my-interfaces';
+import { ITeacherData, IAudienceData } from '@my-interfaces';
 
 import { YSTUProvider } from './ystu.provider';
 import { AccumulativeSchedule } from './entity/accumulative-schedule.entity';
@@ -10,7 +10,7 @@ export class YSTUCollector {
     public aborted = false;
 
     public teachersData: ITeacherData[] = [];
-    public auditoriesData: IAuditoryData[] = [];
+    public audiencesData: IAudienceData[] = [];
     public accumulativeSchedule: AccumulativeSchedule[] = [];
 
     constructor(private readonly ystuProvider: YSTUProvider) {}
@@ -28,7 +28,7 @@ export class YSTUCollector {
     }
 
     /**
-     * Update teachers and auditories every 5 minutes
+     * Update teachers and audiences every 5 minutes
      */
     private async startLoop() {
         const loop = async (first = false) => {
@@ -50,13 +50,13 @@ export class YSTUCollector {
             }
 
             try {
-                const auditoriesData = await this.ystuProvider.getAuditories(
+                const audiencesData = await this.ystuProvider.getAudiences(
                     false,
                 );
-                if (auditoriesData.length === 0) {
-                    throw new Error('Empty array for auditories');
+                if (audiencesData.length === 0) {
+                    throw new Error('Empty array for audiences');
                 }
-                this.auditoriesData = auditoriesData;
+                this.audiencesData = audiencesData;
             } catch (err) {
                 this.logger.error(err);
             }
@@ -76,7 +76,7 @@ export class YSTUCollector {
                 const audiencesWithSchedule = await Promise.all(
                     queueAudiences.map(async (audience) => ({
                         ...audience,
-                        items: await this.ystuProvider.getScheduleByAuditory(
+                        items: await this.ystuProvider.getScheduleByAudience(
                             audience.id,
                             // true,
                         ),
@@ -119,15 +119,15 @@ export class YSTUCollector {
         do {
             try {
                 if (audienceChunks.length === 0) {
-                    audiences = await this.getAuditories();
-                    // auditoryIds.sort();
+                    audiences = await this.getAudiences();
+                    // audienceIds.sort();
                     audiences.sort(() => Math.random() - 0.5);
 
-                    const auditoryIds = audiences.map((e) => e.id);
+                    const audienceIds = audiences.map((e) => e.id);
                     // ? filter or use deleting in for?
                     this.accumulativeSchedule =
                         this.accumulativeSchedule.filter((e) =>
-                            auditoryIds.includes(e.id),
+                            audienceIds.includes(e.id),
                         );
                     audienceChunks = chunk(audiences, 3);
                 }
@@ -181,40 +181,40 @@ export class YSTUCollector {
         return { teacher: { id: teacher.id, name: teacher.name }, items };
     }
 
-    public async getAuditories() {
-        return this.auditoriesData.map((e) => ({ id: e.id, name: e.name }));
+    public async getAudiences() {
+        return this.audiencesData.map((e) => ({ id: e.id, name: e.name }));
     }
 
-    public async getScheduleByAuditory(
+    public async getScheduleByAudience(
         nameOrId: string | number,
         bypassCache: boolean = false,
     ) {
-        let auditory: IAuditoryData = null;
+        let audience: IAudienceData = null;
         if (typeof nameOrId === 'number' || !isNaN(Number(nameOrId))) {
-            auditory = this.auditoriesData.find(
+            audience = this.audiencesData.find(
                 (e) => e.id === Number(nameOrId),
             );
         } else {
-            auditory = this.auditoriesData.find((e) =>
+            audience = this.audiencesData.find((e) =>
                 e.name.toLowerCase().includes(nameOrId.toLowerCase()),
             );
         }
 
-        if (!auditory) {
+        if (!audience) {
             return null;
         }
 
-        const items = await this.ystuProvider.getScheduleByAuditory(
-            auditory.id,
+        const items = await this.ystuProvider.getScheduleByAudience(
+            audience.id,
             bypassCache,
         );
-        return { auditory: { id: auditory.id, name: auditory.name }, items };
+        return { audience: { id: audience.id, name: audience.name }, items };
     }
 
     public async getAccumulative() {
         const items = this.accumulativeSchedule.map((e) => e);
         const percent = Math.round(
-            (items.length / this.auditoriesData.length) * 100,
+            (items.length / this.audiencesData.length) * 100,
         );
         return { items, percent };
     }

@@ -1,4 +1,4 @@
-import { AuditoryLesson } from './auditory-lesson.entity';
+import { AudienceLesson } from './audience-lesson.entity';
 
 export class AccumulativeSchedule {
     /** Номер аудитории */
@@ -6,7 +6,7 @@ export class AccumulativeSchedule {
     /** Название аудитории */
     name: string;
     /** Расписание */
-    items: AuditoryLesson[];
+    items: AudienceLesson[];
     /** Время обновления */
     time: number;
 }

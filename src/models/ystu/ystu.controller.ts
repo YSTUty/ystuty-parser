@@ -21,7 +21,7 @@ import * as xEnv from '@my-environment';
 
 import { MixedDay } from './entity/mixed-day.entity';
 import { OneWeek } from './entity/one-week.entity';
-import { AuditoryLesson } from './entity/auditory-lesson.entity';
+import { AudienceLesson } from './entity/audience-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
 import { AccumulativeSchedule } from './entity/accumulative-schedule.entity';
 
@@ -87,7 +87,7 @@ export class YSTUController {
             institutes: (await this.ystuService.getInstitutes(true)).length,
             groups: (await this.ystuService.getGroups(true, true)).length,
             teachers: (await this.ystuCollector.getTeachers()).length,
-            audiences: (await this.ystuCollector.getAuditories()).length,
+            audiences: (await this.ystuCollector.getAudiences()).length,
         };
     }
 
@@ -298,8 +298,8 @@ export class YSTUController {
         return data;
     }
 
-    @Get('schedule/auditories')
-    @ApiOperation({ summary: 'List of available auditories' })
+    @Get('schedule/audiences')
+    @ApiOperation({ summary: 'List of available audiences' })
     @ApiResponse({
         status: 200,
         schema: {
@@ -326,20 +326,20 @@ export class YSTUController {
             },
         },
     })
-    async getAuditories() {
-        const items = await this.ystuCollector.getAuditories();
+    async getAudiences() {
+        const items = await this.ystuCollector.getAudiences();
         return { items, count: items.length };
     }
 
-    @Get('schedule/auditory/:nameOrId')
-    @ApiOperation({ summary: 'Get a schedule for the specified auditory' })
+    @Get('schedule/audience/:nameOrId')
+    @ApiOperation({ summary: 'Get a schedule for the specified audience' })
     @ApiResponse({
         status: 200,
         schema: {
             type: 'object',
             properties: {
                 isCache: { type: 'boolean' },
-                auditory: {
+                audience: {
                     type: 'object',
                     properties: {
                         id: { type: 'number' },
@@ -348,17 +348,17 @@ export class YSTUController {
                 },
                 items: {
                     type: 'array',
-                    items: { $ref: getSchemaPath(AuditoryLesson) },
+                    items: { $ref: getSchemaPath(AudienceLesson) },
                 },
             },
         },
     })
-    @ApiExtraModels(AuditoryLesson)
-    async getByAuditory(@Param('nameOrId') nameOrId: string) {
-        const data = await this.ystuCollector.getScheduleByAuditory(nameOrId);
+    @ApiExtraModels(AudienceLesson)
+    async getByAudience(@Param('nameOrId') nameOrId: string) {
+        const data = await this.ystuCollector.getScheduleByAudience(nameOrId);
         if (!data) {
             throw new NotFoundException(
-                'auditory not found by this name or id',
+                'audience not found by this name or id',
             );
         }
         return data;
@@ -394,7 +394,7 @@ export class YSTUController {
     })
     @ApiExtraModels(AccumulativeSchedule)
     async getAccumulative() {
-        const audiences = await this.ystuCollector.getAuditories();
+        const audiences = await this.ystuCollector.getAudiences();
         const data = await this.ystuCollector.getAccumulative();
         return { ...data, count: data.items.length, total: audiences.length };
     }
