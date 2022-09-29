@@ -101,6 +101,7 @@ export class YSTUProvider {
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
             useCache?: true;
+            bypassCache?: boolean;
             useReauth?: boolean;
         },
     ): Promise<AxiosResponse | { isCache: true; data: any }>;
@@ -111,6 +112,7 @@ export class YSTUProvider {
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
             useCache: false;
+            bypassCache?: boolean;
             useReauth?: boolean;
         },
     ): Promise<AxiosResponse>;
@@ -121,12 +123,14 @@ export class YSTUProvider {
             postData = {},
             axiosConfig = {},
             useCache = false,
+            bypassCache = false,
             useReauth = true,
         }: {
             method?: Method;
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
             useCache?: boolean;
+            bypassCache?: boolean;
             useReauth?: boolean;
         } = {},
     ) {
@@ -165,7 +169,7 @@ export class YSTUProvider {
         axiosConfig.method = method;
 
         let file: [string, string];
-        if (useCache) {
+        if (useCache && !bypassCache) {
             file = [
                 'web',
                 `${url}_${method}_${md5(JSON.stringify(axiosConfig))}`,
@@ -361,7 +365,7 @@ export class YSTUProvider {
         };
     }
 
-    public async getTeachers() {
+    public async getTeachers(bypassCache: boolean = false) {
         const { datt0, datt1 } = this.getDatt();
         const postData = new FormData();
         postData.append('datt0', datt0);
@@ -372,6 +376,7 @@ export class YSTUProvider {
             '/WPROG/rasp/raspz_prep.php',
             {
                 useCache: true,
+                bypassCache,
                 method: 'POST',
                 postData,
                 axiosConfig: { timeout: 10e3 },
@@ -386,7 +391,7 @@ export class YSTUProvider {
         return teachersData;
     }
 
-    public async getAuditories() {
+    public async getAuditories(bypassCache: boolean = false) {
         const { datt0, datt1 } = this.getDatt();
         const postData = new FormData();
         postData.append('datt0', datt0);
@@ -397,6 +402,7 @@ export class YSTUProvider {
             '/WPROG/rasp/raspz_prep.php',
             {
                 useCache: true,
+                bypassCache,
                 method: 'POST',
                 postData,
                 axiosConfig: { timeout: 10e3 },
