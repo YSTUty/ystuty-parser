@@ -5,10 +5,11 @@ import {
     NotFoundException,
     OnModuleInit,
 } from '@nestjs/common';
-import { IInstituteData, ITeacherData, IAuditoryData } from '@my-interfaces';
+import { IInstituteData } from '@my-interfaces';
 import { cacheManager } from '@my-common';
 
 import { YSTUProvider } from './ystu.provider';
+import { YSTUCollector } from './ystu.collector';
 import * as cherrioParser from './cherrio.parser';
 
 import { OneWeek } from './entity/one-week.entity';
@@ -18,18 +19,19 @@ import { MixedDay } from './entity/mixed-day.entity';
 export class YSTUService implements OnModuleInit {
     private readonly logger = new Logger(YSTUService.name);
 
-    constructor(private readonly ystuProvider: YSTUProvider) {}
+    constructor(
+        private readonly ystuProvider: YSTUProvider,
+        private readonly ystuCollector: YSTUCollector,
+    ) {}
 
     public isLoaded = false;
     public instituteLinks: IInstituteData[] = [];
     public extramuralLinks: IInstituteData[] = [];
 
-    public teachersData: ITeacherData[] = [];
-    public auditoriesData: IAuditoryData[] = [];
-
     async onModuleInit() {
         this.logger.log('Start initializing provider...');
         await this.ystuProvider.init();
+        await this.ystuCollector.init();
         this.logger.log('Initializing provider finished');
 
         this.init().then();
@@ -38,9 +40,6 @@ export class YSTUService implements OnModuleInit {
     public async init() {
         [this.instituteLinks, this.extramuralLinks] =
             await this.ystuProvider.getRaspZLinks();
-
-        this.teachersData = await this.ystuProvider.getTeachers();
-        this.auditoriesData = await this.ystuProvider.getAuditories();
 
         // ...
         this.isLoaded = true;
@@ -169,87 +168,5 @@ export class YSTUService implements OnModuleInit {
         await cacheManager.update(file, items, 86400e3);
 
         return { isCache: false, items };
-    }
-
-    public async getTeachers() {
-        return this.teachersData.map((e) => ({ id: e.id, name: e.name }));
-    }
-
-    public async getScheduleByTeacher(nameOrId: string | number) {
-        let teacher: ITeacherData = null;
-        if (typeof nameOrId === 'number' || !isNaN(Number(nameOrId))) {
-            teacher = this.teachersData.find((e) => e.id === Number(nameOrId));
-        } else {
-            teacher = this.teachersData.find((e) =>
-                e.name.toLowerCase().includes(nameOrId.toLowerCase()),
-            );
-        }
-
-        if (!teacher) {
-            throw new NotFoundException('teacher not found by this name or id');
-        }
-
-        const { datt0, datt1 } = this.ystuProvider.getDatt();
-        const postData = { datt0, datt1, idprep: teacher.id };
-
-        const raspz_prep1Response = await this.ystuProvider.fetch(
-            '/WPROG/rasp/raspz_prep1.php',
-            {
-                useCache: true,
-                method: 'POST',
-                postData,
-                axiosConfig: { timeout: 10e3 },
-            },
-        );
-
-        const html = raspz_prep1Response?.data;
-        const teacherSchedule = await cherrioParser.getTeacherSchedule(html);
-        return {
-            teacher: { id: teacher.id, name: teacher.name },
-            items: teacherSchedule,
-        };
-    }
-
-    public async getAuditories() {
-        return this.auditoriesData.map((e) => ({ id: e.id, name: e.name }));
-    }
-
-    public async getScheduleByAuditory(nameOrId: string | number) {
-        let auditory: IAuditoryData = null;
-        if (typeof nameOrId === 'number' || !isNaN(Number(nameOrId))) {
-            auditory = this.auditoriesData.find(
-                (e) => e.id === Number(nameOrId),
-            );
-        } else {
-            auditory = this.auditoriesData.find((e) =>
-                e.name.toLowerCase().includes(nameOrId.toLowerCase()),
-            );
-        }
-
-        if (!auditory) {
-            throw new NotFoundException(
-                'auditory not found by this name or id',
-            );
-        }
-
-        const { datt0, datt1 } = this.ystuProvider.getDatt();
-        const postData = { datt0, datt1, idaudi: auditory.id };
-
-        const raspz_prep1Response = await this.ystuProvider.fetch(
-            '/WPROG/rasp/raspz_prep1.php',
-            {
-                useCache: true,
-                method: 'POST',
-                postData,
-                axiosConfig: { timeout: 10e3 },
-            },
-        );
-
-        const html = raspz_prep1Response?.data;
-        const auditorySchedule = await cherrioParser.getAuditorySchedule(html);
-        return {
-            auditory: { id: auditory.id, name: auditory.name },
-            items: auditorySchedule,
-        };
     }
 }

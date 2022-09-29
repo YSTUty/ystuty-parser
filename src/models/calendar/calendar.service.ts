@@ -9,10 +9,14 @@ import { getLessonTypeStrArr } from '@my-common';
 import * as xEnv from '@my-environment';
 
 import { YSTUService } from '../ystu/ystu.service';
+import { YSTUCollector } from '../ystu/ystu.collector';
 
 @Injectable()
 export class CalendarService {
-    constructor(private readonly ystuServiec: YSTUService) {}
+    constructor(
+        private readonly ystuServiec: YSTUService,
+        private readonly ystuCollector: YSTUCollector,
+    ) {}
 
     public async generateCalenadrForGroup(groupName: string) {
         const schedule = await this.ystuServiec.getScheduleByGroup(groupName);
@@ -91,7 +95,7 @@ export class CalendarService {
 
     public async generateCalenadrForTeacher(teacherId: number) {
         const { teacher, items: schedule } =
-            await this.ystuServiec.getScheduleByTeacher(teacherId);
+            await this.ystuCollector.getScheduleByTeacher(teacherId);
 
         const calendar = ical()
             .name(`YSTUty [${teacher.name}]`)

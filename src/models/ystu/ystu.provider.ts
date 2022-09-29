@@ -415,4 +415,50 @@ export class YSTUProvider {
 
         return auditoriesData;
     }
+
+    public async getScheduleByTeacher(
+        teacherId: number,
+        bypassCache: boolean = false,
+    ) {
+        const { datt0, datt1 } = this.getDatt();
+        const postData = { datt0, datt1, idprep: teacherId };
+
+        const raspz_prep1Response = await this.fetch(
+            '/WPROG/rasp/raspz_prep1.php',
+            {
+                useCache: true,
+                bypassCache,
+                method: 'POST',
+                postData,
+                axiosConfig: { timeout: 10e3 },
+            },
+        );
+
+        const html = raspz_prep1Response?.data;
+        const teacherSchedule = await cherrioParser.getTeacherSchedule(html);
+        return teacherSchedule;
+    }
+
+    public async getScheduleByAuditory(
+        auditoryId: number,
+        bypassCache: boolean = false,
+    ) {
+        const { datt0, datt1 } = this.getDatt();
+        const postData = { datt0, datt1, idaudi: auditoryId };
+
+        const raspz_prep1Response = await this.fetch(
+            '/WPROG/rasp/raspz_prep1.php',
+            {
+                useCache: true,
+                bypassCache,
+                method: 'POST',
+                postData,
+                axiosConfig: { timeout: 10e3 },
+            },
+        );
+
+        const html = raspz_prep1Response?.data;
+        const auditorySchedule = await cherrioParser.getAuditorySchedule(html);
+        return auditorySchedule;
+    }
 }

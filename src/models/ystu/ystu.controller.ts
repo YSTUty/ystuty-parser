@@ -3,6 +3,7 @@ import {
     DefaultValuePipe,
     Get,
     HttpException,
+    NotFoundException,
     Param,
     ParseBoolPipe,
     Query,
@@ -24,11 +25,15 @@ import { AuditoryLesson } from './entity/auditory-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 import { YSTUService } from './ystu.service';
+import { YSTUCollector } from './ystu.collector';
 
 @ApiTags('ystu')
 @Controller('/ystu')
 export class YSTUController {
-    constructor(private readonly ystuService: YSTUService) {}
+    constructor(
+        private readonly ystuService: YSTUService,
+        private readonly ystuCollector: YSTUCollector,
+    ) {}
 
     @Get('me')
     @ApiOperation({ summary: 'Information about the authorized user' })
@@ -72,6 +77,7 @@ export class YSTUController {
                 institutes: { type: 'number', example: 8 },
                 groups: { type: 'number', example: 256 },
                 teachers: { type: 'number', example: 460 },
+                audiences: { type: 'number', example: 260 },
             },
         },
     })
@@ -79,7 +85,8 @@ export class YSTUController {
         return {
             institutes: (await this.ystuService.getInstitutes(true)).length,
             groups: (await this.ystuService.getGroups(true, true)).length,
-            teachers: (await this.ystuService.getTeachers()).length,
+            teachers: (await this.ystuCollector.getTeachers()).length,
+            audiences: (await this.ystuCollector.getAuditories()).length,
         };
     }
 
@@ -255,7 +262,7 @@ export class YSTUController {
     })
     async getTeachers() {
         return {
-            items: await this.ystuService.getTeachers(),
+            items: await this.ystuCollector.getTeachers(),
         };
     }
 
@@ -283,7 +290,10 @@ export class YSTUController {
     })
     @ApiExtraModels(TeacherLesson)
     async getByTeacher(@Param('teacherNameOrId') nameOrId: string) {
-        const data = await this.ystuService.getScheduleByTeacher(nameOrId);
+        const data = await this.ystuCollector.getScheduleByTeacher(nameOrId);
+        if (!data) {
+            throw new NotFoundException('teacher not found by this name or id');
+        }
         return data;
     }
 
@@ -316,7 +326,7 @@ export class YSTUController {
         },
     })
     async getAuditories() {
-        const items = await this.ystuService.getAuditories();
+        const items = await this.ystuCollector.getAuditories();
         return { items, count: items.length };
     }
 
@@ -344,7 +354,12 @@ export class YSTUController {
     })
     @ApiExtraModels(AuditoryLesson)
     async getByAuditory(@Param('nameOrId') nameOrId: string) {
-        const data = await this.ystuService.getScheduleByAuditory(nameOrId);
+        const data = await this.ystuCollector.getScheduleByAuditory(nameOrId);
+        if (!data) {
+            throw new NotFoundException(
+                'auditory not found by this name or id',
+            );
+        }
         return data;
     }
 }

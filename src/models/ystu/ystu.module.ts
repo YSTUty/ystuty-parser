@@ -6,6 +6,7 @@ import * as xEnv from '@my-environment';
 import { YSTUController } from './ystu.controller';
 import { YSTUProvider } from './ystu.provider';
 import { YSTUService } from './ystu.service';
+import { YSTUCollector } from './ystu.collector';
 
 @Module({
     imports: [
@@ -22,8 +23,8 @@ export class YSTUModule {
             module: YSTUModule,
             ...(xEnv.YSTU_PASSWORD && {
                 controllers: [YSTUController],
-                providers: [YSTUService, YSTUProvider],
-                exports: [YSTUService],
+                providers: [YSTUService, YSTUProvider, YSTUCollector],
+                exports: [YSTUService, YSTUCollector],
             }),
         };
     }
