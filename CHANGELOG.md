@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.9](https://github.com/YSTUty/ystuty-parser/compare/v0.0.8...v0.0.9) (2022-09-29)
+
+
+### 🐛 Bug Fixes
+
+* **calendar:** fixed calendar generating data ([69359b3](https://github.com/YSTUty/ystuty-parser/commit/69359b3fd856aaa20634a960856504c7db20b661))
+* **parser:** added support empty `lessonTypeStr` value ([06a3c66](https://github.com/YSTUty/ystuty-parser/commit/06a3c66d27d0b0633751868fcd552c8cc6627e6a))
+
+
+### 🚀 Features
+
+* added `prettier` and `editorconfig` ([d153cab](https://github.com/YSTUty/ystuty-parser/commit/d153cab8847a285515346ccc52447aa68188e6e5))
+* **collector:** added accumulative schedule ([3254d10](https://github.com/YSTUty/ystuty-parser/commit/3254d107298851cd50c8f3bbd1086c774006fc46))
+* **collector:** added collector service ([68ea398](https://github.com/YSTUty/ystuty-parser/commit/68ea398e31bae7fa2064274a87297b4c6d6c7c43))
+* **parser:** added schedule parsing for auditories ([a3d3056](https://github.com/YSTUty/ystuty-parser/commit/a3d3056d810f006d85bbdab363b9cfb537c92d18))
+
+
+### 🧹 Chore
+
+* **env:** added `SERVER_URL` param to example ([5ea4a6f](https://github.com/YSTUty/ystuty-parser/commit/5ea4a6fe9e86b55d0ea84a24cb1e98487a3f69b1))
+* prettier ([eed161d](https://github.com/YSTUty/ystuty-parser/commit/eed161d15eaa22e855fbbd105fbbc9e188502115))
+* **provider:** added `bypassCache` param for fetch ([acf50e9](https://github.com/YSTUty/ystuty-parser/commit/acf50e951df89e93ce24306aebe65d034e468870))
+* **service:** updated `ttl` for caching group schedule ([a5bc46a](https://github.com/YSTUty/ystuty-parser/commit/a5bc46a1dbb6643c78212ab450e294d8a239ad85))
+* **typos:** renamed `auditory` to `audience` ([5b42396](https://github.com/YSTUty/ystuty-parser/commit/5b42396d1cc467b33aa9e9c81d5686d5feb000f9))
+* **ystu:** removed `formData` and added `datt` generator ([7db0c10](https://github.com/YSTUty/ystuty-parser/commit/7db0c10c9bf01b395061d71120e8e5028014c829))
+
 ### [0.0.8](https://github.com/YSTUty/ystuty-parser/compare/v0.0.7...v0.0.8) (2022-09-01)
 
 
