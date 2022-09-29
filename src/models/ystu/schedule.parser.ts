@@ -558,7 +558,7 @@ export const parseTeacherDayCherrio = ((
         'i',
     );
 
-    const typeGroups = lessonTypeStr.match(typeRegExp).groups || {};
+    const typeGroups = lessonTypeStr?.match(typeRegExp).groups || {};
 
     // const lessonType = lessonTypeStr
     //     .replace(/[()]/g, '')
