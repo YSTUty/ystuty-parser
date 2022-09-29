@@ -140,7 +140,8 @@ export class YSTUService implements OnModuleInit {
         }
 
         const scheduleResponse = await this.ystuProvider.fetch(groupInfo.link, {
-            useCache: false,
+            useCache: true,
+            bypassCache: true,
         });
         const scheduleData = await cherrioParser.getSchedule(
             scheduleResponse.data,
@@ -164,7 +165,8 @@ export class YSTUService implements OnModuleInit {
         }
 
         const items = [...scheduleLectureData, ...scheduleData];
-        await cacheManager.update(file, items, 86400);
+        // cache 1 day
+        await cacheManager.update(file, items, 86400e3);
 
         return { isCache: false, items };
     }
