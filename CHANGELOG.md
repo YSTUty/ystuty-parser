@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.10](https://github.com/YSTUty/ystuty-parser/compare/v0.0.9...v0.0.10) (2022-09-30)
+
+
+### 🚀 Features
+
+* **docker:** optimized cache layers ([9a3ad2e](https://github.com/YSTUty/ystuty-parser/commit/9a3ad2e91ee642a548bec3daf01da65ae8c393c2))
+
+
+### 🐛 Bug Fixes
+
+* **provider:** fixed null file name because of `bypassCache` ([53911d5](https://github.com/YSTUty/ystuty-parser/commit/53911d58984e4a52803f06ba34a0fcc8846841b2))
+
 ### [0.0.9](https://github.com/YSTUty/ystuty-parser/compare/v0.0.8...v0.0.9) (2022-09-29)
 
 
