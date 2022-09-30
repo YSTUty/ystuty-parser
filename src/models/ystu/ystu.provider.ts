@@ -169,19 +169,21 @@ export class YSTUProvider {
         axiosConfig.method = method;
 
         let file: [string, string];
-        if (useCache && !bypassCache) {
+        if (useCache) {
             file = [
                 'web',
                 `${url}_${method}_${md5(JSON.stringify(axiosConfig))}`,
             ];
-            const isTimeout = await cacheManager.checkTimeout(file);
+            if (!bypassCache) {
+                const isTimeout = await cacheManager.checkTimeout(file);
 
-            if (isTimeout === false) {
-                const { data } = await cacheManager.readData<{ data: string }>(
-                    file,
-                );
-                if (!data.includes('input type="submit" name="login1"')) {
-                    return { isCache: true, data };
+                if (isTimeout === false) {
+                    const { data } = await cacheManager.readData<{
+                        data: string;
+                    }>(file);
+                    if (!data.includes('input type="submit" name="login1"')) {
+                        return { isCache: true, data };
+                    }
                 }
             }
         }
