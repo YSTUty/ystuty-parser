@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { RealIP } from 'nestjs-real-ip';
+import { cacheManager, formatByteSize, memorySizeOf } from '@my-common';
 
 import { AppService } from './app.service';
 
@@ -19,6 +20,16 @@ export class AppController {
     @Get('uptime')
     getTime() {
         return `uptime:${Date.now() - this.timeStart}`;
+    }
+
+    @Get('cache_size')
+    getCacheSize() {
+        const size = memorySizeOf(cacheManager['cache']);
+        return {
+            count: Object.keys(cacheManager['cache']).length,
+            bytes: size,
+            size: formatByteSize(size),
+        };
     }
 
     @Get('v')
