@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.11](https://github.com/YSTUty/ystuty-parser/compare/v0.0.10...v0.0.11) (2022-10-07)
+
+
+### 🚀 Features
+
+* **cache:** added garbage clearing of cache ([8f570b3](https://github.com/YSTUty/ystuty-parser/commit/8f570b3a0f5877d6f92bdb8ede222829f844c0c5))
+
+
+### 🧹 Chore
+
+* **app:** getting `cache` size ([c79c72b](https://github.com/YSTUty/ystuty-parser/commit/c79c72bf00c67d0b8ec69add8facbf3db93ef0ea))
+* **cache:** updated `ttl` ([90f0725](https://github.com/YSTUty/ystuty-parser/commit/90f07254aa06be93d14301c0d215bc39bc6c57c1))
+* **provider:** removed `headers` from file hash cache name ([95f75b0](https://github.com/YSTUty/ystuty-parser/commit/95f75b0d55c8215942d0f98d2170fcbd2c38cc2e))
+
+
+### 🐛 Bug Fixes
+
+* **provider:** fixed authorization by cookies ([6a3d23a](https://github.com/YSTUty/ystuty-parser/commit/6a3d23a9eb3003463100ba51a996900559f2d640))
+
 ### [0.0.10](https://github.com/YSTUty/ystuty-parser/compare/v0.0.9...v0.0.10) (2022-09-30)
 
 
