@@ -60,9 +60,11 @@ export class YSTUProvider {
                 }, {});
 
                 Object.assign(this.cookies, cookies);
-                await cacheManager.update(COOKIES_FILE, {
-                    cookies: this.cookies,
-                });
+                await cacheManager.update(
+                    COOKIES_FILE,
+                    { cookies: this.cookies },
+                    -1,
+                );
                 this.logger.debug('Updated cookies', this.cookies);
             }
 
@@ -82,9 +84,7 @@ export class YSTUProvider {
         }
 
         try {
-            const lkstudResponse = await this.fetch('/WPROG/lk/lkstud.php', {
-                useCache: false,
-            });
+            const lkstudResponse = await this.fetch('/WPROG/lk/lkstud.php');
             this.authorizedUser = cherrioParser.getName(lkstudResponse.data);
             if (!xEnv.YSTU_DISABLE_USERINFO) {
                 this.logger.debug('Authorized user', this.authorizedUser);
@@ -94,28 +94,28 @@ export class YSTUProvider {
         }
     }
 
-    public fetch(
-        url: string,
-        options?: {
-            method?: Method;
-            postData?: any;
-            axiosConfig?: AxiosRequestConfig<any>;
-            useCache?: true;
-            bypassCache?: boolean;
-            useReauth?: boolean;
-        },
-    ): Promise<AxiosResponse | { isCache: true; data: any }>;
-    public fetch(
+    public fetch<T = any, D = any>(
         url: string,
         options: {
             method?: Method;
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
-            useCache: false;
+            useCache: true | number;
             bypassCache?: boolean;
             useReauth?: boolean;
         },
-    ): Promise<AxiosResponse>;
+    ): Promise<AxiosResponse<T, D> | { isCache: true; data: any }>;
+    public fetch<T = any, D = any>(
+        url: string,
+        options?: {
+            method?: Method;
+            postData?: any;
+            axiosConfig?: AxiosRequestConfig<any>;
+            useCache?: false;
+            bypassCache?: boolean;
+            useReauth?: boolean;
+        },
+    ): Promise<AxiosResponse<T, D>>;
     public async fetch(
         url: string,
         {
@@ -129,7 +129,7 @@ export class YSTUProvider {
             method?: Method;
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
-            useCache?: boolean;
+            useCache?: boolean | number;
             bypassCache?: boolean;
             useReauth?: boolean;
         } = {},
@@ -212,7 +212,11 @@ export class YSTUProvider {
 
             if (useCache) {
                 this.logger.debug(`[fetch] Update cache: ${url.slice(0, 35)}`);
-                await cacheManager.update(file, { data: response.data });
+                await cacheManager.update(
+                    file,
+                    { data: response.data },
+                    typeof useCache === 'boolean' ? 60 * 30 : useCache,
+                );
             }
             return response;
         } catch (err) {
@@ -234,7 +238,6 @@ export class YSTUProvider {
                 ...this.authPayload,
                 codeYSTU: Date.now() % 11e9,
             },
-            useCache: false,
         });
 
         // check content on `auth1.php`
@@ -242,9 +245,7 @@ export class YSTUProvider {
             throw new Error('Wrong login:password');
         }
 
-        const lkstudResponse = await this.fetch('/WPROG/lk/lkstud.php', {
-            useCache: false,
-        });
+        const lkstudResponse = await this.fetch('/WPROG/lk/lkstud.php');
         const needAuth = lkstudResponse.request.path?.includes('auth.php');
         return !needAuth;
     }

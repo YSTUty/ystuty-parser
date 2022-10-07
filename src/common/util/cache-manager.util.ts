@@ -6,9 +6,12 @@ import { CACHE_PATH } from '@my-environment';
 import { md5 } from '@my-common';
 
 export type CacheData<T = any> = {
+    /** Cache update timestamp in milliseconds */
     time: number;
+    /** TTL in seconds (or -1) */
     ttl: number;
     data: T;
+    /** Source file path */
     source: string;
 };
 
@@ -54,11 +57,16 @@ export class CacheManager {
         } catch (err) {}
     }
 
-    public async update(file: PathType, data: any, ttl: number = 36e4) {
-        // console.log('\n\n-----', file, data);
+    /**
+     * Update cache file
+     * @param file Path to cache file
+     * @param data Cache data
+     * @param ttl [ttl=3600] TTL in **seconds** *(if `-1`, then indefinite)*
+     */
+    public async update(file: PathType, data: any, ttl: number = 60 * 60) {
         const arFile = await this.parseFilePath(file);
         if (!arFile) {
-            return;
+            return false;
         }
         const [apath, afile] = arFile;
 
@@ -78,6 +86,7 @@ export class CacheManager {
         };
 
         await Fs.writeFile(path, JSON.stringify(this.cache[name], null, 2));
+        return true;
     }
 
     public async readData<T = any>(file: PathType, forceFile: boolean = false) {
@@ -138,6 +147,8 @@ export class CacheManager {
     /**
      * Is cache file timeout
      */
+    public async checkTimeout(file: PathType): Promise<boolean>;
+    public async checkTimeout(file: PathType, withTime: true): Promise<number>;
     public async checkTimeout(file: PathType, withTime = false) {
         const arFile = await this.parseFilePath(file);
         if (!arFile) {
@@ -151,9 +162,9 @@ export class CacheManager {
         const { time, ttl } = cache;
 
         if (withTime) {
-            return ttl - (Date.now() - (time || 0));
+            return ttl === -1 ? -1 : ttl * 1e3 - (Date.now() - (time || 0));
         }
-        return Date.now() - (time || 0) > ttl;
+        return ttl === -1 ? false : Date.now() - (time || 0) > ttl * 1e3;
     }
 
     public async clearOfGarbage(maxCount = 100, subpath: string[] = []) {
@@ -175,7 +186,7 @@ export class CacheManager {
                     continue;
                 }
                 const { time, ttl } = cache;
-                if (Date.now() - (time || 0) > ttl) {
+                if (ttl !== -1 && Date.now() - (time || 0) > ttl * 1e3) {
                     this.delete(file);
                     files.push({
                         file: file.join('/'),
