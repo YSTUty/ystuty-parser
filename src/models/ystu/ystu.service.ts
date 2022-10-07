@@ -121,7 +121,7 @@ export class YSTUService implements OnModuleInit {
         short: true,
     ): Promise<{ isCache: boolean; items: MixedDay[] }>;
     public async getScheduleByGroup(name: string, short = false) {
-        const file: [string, string] = ['schedule', name];
+        const file: [string, string] = ['schedule', name.toLowerCase()];
         const isTimeout = await cacheManager.checkTimeout(file);
 
         if (isTimeout === false) {
