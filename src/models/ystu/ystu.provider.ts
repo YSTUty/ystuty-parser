@@ -118,14 +118,7 @@ export class YSTUProvider {
     ): Promise<AxiosResponse<T, D>>;
     public async fetch(
         url: string,
-        {
-            method = 'GET',
-            postData = {},
-            axiosConfig = {},
-            useCache = false,
-            bypassCache = false,
-            useReauth = true,
-        }: {
+        options: {
             method?: Method;
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
@@ -134,6 +127,14 @@ export class YSTUProvider {
             useReauth?: boolean;
         } = {},
     ) {
+        let {
+            method = 'GET',
+            postData = {},
+            axiosConfig = {},
+            useCache = false,
+            bypassCache = false,
+            useReauth = true,
+        } = options;
         method = method.toUpperCase() as Method;
 
         if (!axiosConfig.headers) {
@@ -206,9 +207,7 @@ export class YSTUProvider {
                 if (!success) {
                     throw new Error('Failed auth');
                 }
-                response = await firstValueFrom(
-                    this.httpService.request(axiosConfig),
-                );
+                return await this.fetch(url, options as any);
             }
 
             if (useCache) {
@@ -239,6 +238,7 @@ export class YSTUProvider {
                 ...this.authPayload,
                 codeYSTU: Date.now() % 11e9,
             },
+            useReauth: false,
         });
 
         // check content on `auth1.php`
@@ -246,7 +246,9 @@ export class YSTUProvider {
             throw new Error('Wrong login:password');
         }
 
-        const lkstudResponse = await this.fetch('/WPROG/lk/lkstud.php');
+        const lkstudResponse = await this.fetch('/WPROG/lk/lkstud.php', {
+            useReauth: false,
+        });
         const needAuth = lkstudResponse.request.path?.includes('auth.php');
         return !needAuth;
     }
