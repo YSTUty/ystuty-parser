@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.12](https://github.com/YSTUty/ystuty-parser/compare/v0.0.11...v0.0.12) (2022-10-07)
+
+
+### 🧹 Chore
+
+* **deps:** update ([d99b4e1](https://github.com/YSTUty/ystuty-parser/commit/d99b4e15b2c70a85958a6f1575acc24a6376a425))
+* **ystu:** make schedule group name to lowercase ([8ebb520](https://github.com/YSTUty/ystuty-parser/commit/8ebb520571632eeefdf308e4d2f5c3b0bced1530))
+
 ### [0.0.11](https://github.com/YSTUty/ystuty-parser/compare/v0.0.10...v0.0.11) (2022-10-07)
 
 
