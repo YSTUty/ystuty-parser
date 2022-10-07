@@ -170,10 +170,11 @@ export class YSTUProvider {
 
         let file: [string, string];
         if (useCache) {
-            file = [
-                'web',
-                `${url}_${method}_${md5(JSON.stringify(axiosConfig))}`,
-            ];
+            const cloneConfig = JSON.parse(JSON.stringify(axiosConfig));
+            // * to bypass duplicate caches from different PHPSESSID
+            delete cloneConfig?.['headers'];
+            const hash = md5(JSON.stringify(cloneConfig));
+            file = ['web', `${url}_${method}_${hash}`];
             if (!bypassCache) {
                 const isTimeout = await cacheManager.checkTimeout(file);
 
