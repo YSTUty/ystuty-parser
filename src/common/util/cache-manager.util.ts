@@ -109,9 +109,10 @@ export class CacheManager {
 
         const str = await Fs.readFile(path, 'utf8');
         try {
+            if (!str) return null;
             return JSON.parse(str);
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            console.error(path, err);
             return null;
         }
     }
@@ -137,7 +138,7 @@ export class CacheManager {
     /**
      * Is cache file timeout
      */
-    public async checkTimeout(file: PathType) {
+    public async checkTimeout(file: PathType, withTime = false) {
         const arFile = await this.parseFilePath(file);
         if (!arFile) {
             return null;
@@ -149,7 +150,60 @@ export class CacheManager {
         }
         const { time, ttl } = cache;
 
+        if (withTime) {
+            return ttl - (Date.now() - (time || 0));
+        }
         return Date.now() - (time || 0) > ttl;
+    }
+
+    public async clearOfGarbage(maxCount = 100, subpath: string[] = []) {
+        let skipCount = 0;
+        let files: { file: string; outtime: number }[] = [];
+
+        const path2cache = Path.resolve(this.path, ...subpath);
+        const dirFiles = await Fs.readdir(path2cache);
+        for (const fileName of dirFiles) {
+            const filePath = Path.resolve(path2cache, fileName);
+            const stat = await Fs.stat(filePath);
+            if (stat.isFile()) {
+                const file = [Path.join(...subpath), fileName] as [
+                    string,
+                    string,
+                ];
+                const cache = await this.read(file);
+                if (cache === null) {
+                    continue;
+                }
+                const { time, ttl } = cache;
+                if (Date.now() - (time || 0) > ttl) {
+                    this.delete(file);
+                    files.push({
+                        file: file.join('/'),
+                        outtime: Date.now() - (time || 0),
+                    });
+                    --maxCount;
+                } else {
+                    ++skipCount;
+                }
+            } else {
+                // Deep
+                const subres = await this.clearOfGarbage(maxCount, [
+                    ...subpath,
+                    fileName,
+                ]);
+                files.push(...subres.files);
+                maxCount -= subres.files.length;
+                skipCount += subres.skipCount;
+            }
+            if (maxCount < 1) {
+                break;
+            }
+        }
+        return {
+            files,
+            skipCount,
+            maxCount,
+        };
     }
 
     public getPath(path: string, file: string) {
@@ -157,6 +211,9 @@ export class CacheManager {
     }
 
     public genName(str: string) {
+        if (str.endsWith('.json') && str.split('.').length > 1) {
+            return str.slice(0, -'.json'.length);
+        }
         return `${str.replace(/[^0-9А-яA-z-_]/gi, '').slice(0, 25)}.${md5(
             str.toLowerCase(),
         ).slice(-8)}`;
