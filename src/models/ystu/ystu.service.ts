@@ -30,7 +30,9 @@ export class YSTUService implements OnModuleInit {
 
     async onModuleInit() {
         this.logger.log('Start initializing provider...');
-        await this.ystuProvider.init();
+        if (!(await this.ystuProvider.init())) {
+            throw new Error('Failed to initialize YSTU provider');
+        }
         await this.ystuCollector.init();
         this.logger.log('Initializing provider finished');
 

@@ -51,22 +51,7 @@ export class YSTUProvider {
 
             response.data = Iconv.decode(response.data, 'cp1251');
 
-            const setCookie = response.headers['set-cookie'] as string[];
-            if (Array.isArray(setCookie)) {
-                const cookies = setCookie.reduce((prev, str) => {
-                    const [name, data] = str.split('=');
-                    const [value] = data.split(';');
-                    return { ...prev, [name]: value };
-                }, {});
-
-                Object.assign(this.cookies, cookies);
-                await cacheManager.update(
-                    COOKIES_FILE,
-                    { cookies: this.cookies },
-                    -1,
-                );
-                this.logger.debug('Updated cookies', this.cookies);
-            }
+            await this.updateCookies(response.headers['set-cookie']);
 
             return response;
         });
@@ -89,8 +74,10 @@ export class YSTUProvider {
             if (!xEnv.YSTU_DISABLE_USERINFO) {
                 this.logger.debug('Authorized user', this.authorizedUser);
             }
+            return true;
         } catch (err) {
             this.logger.error(err);
+            return false;
         }
     }
 
@@ -136,6 +123,14 @@ export class YSTUProvider {
             useReauth = true,
         } = options;
         method = method.toUpperCase() as Method;
+
+        axiosConfig.beforeRedirect = (opts, responseDetails) => {
+            if (responseDetails.headers) {
+                this.updateCookies(
+                    responseDetails.headers['set-cookie'] as any,
+                ).then();
+            }
+        };
 
         if (!axiosConfig.headers) {
             axiosConfig.headers = {
@@ -227,6 +222,21 @@ export class YSTUProvider {
         }
     }
 
+    private async updateCookies(setCookie: string[]) {
+        if (!Array.isArray(setCookie)) {
+            return;
+        }
+        const cookies = setCookie.reduce((prev, str) => {
+            const [name, data] = str.split('=');
+            const [value] = data.split(';');
+            return { ...prev, [name]: value };
+        }, {});
+
+        Object.assign(this.cookies, cookies);
+        await cacheManager.update(COOKIES_FILE, { cookies: this.cookies }, -1);
+        this.logger.debug('Updated cookies', this.cookies);
+    }
+
     public async startAuth() {
         if (Object.values(this.authPayload).some((e) => e.length < 2)) {
             return false;
@@ -236,7 +246,7 @@ export class YSTUProvider {
             method: 'POST',
             postData: {
                 ...this.authPayload,
-                codeYSTU: Date.now() % 11e9,
+                codeYSTU: Date.now() % 11e8,
             },
             useReauth: false,
         });
