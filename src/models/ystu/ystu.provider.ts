@@ -13,6 +13,8 @@ import * as cherrioParser from './cherrio.parser';
 
 export const COOKIES_FILE = 'cookies';
 
+const hasLogin1 = 'input type="submit" name="login1"'.toLowerCase();
+
 @Injectable()
 export class YSTUProvider {
     private readonly logger = new Logger(YSTUProvider.name);
@@ -81,6 +83,54 @@ export class YSTUProvider {
         }
     }
 
+    public tryInjectCookeis(
+        headers?: Record<string, any>,
+        setCookie?: string[],
+    ) {
+        let cookies = this.cookies;
+        if (setCookie?.length > 0) {
+            cookies = setCookie.reduce((prev, str) => {
+                const [name, data] = str.split('=');
+                const [value] = data.split(';');
+                return { ...prev, [name]: value };
+            }, {});
+        }
+
+        if (!cookies) {
+            return null;
+        }
+        let cookiesStr = Object.entries(cookies)
+            .map(([k, v]) => `${k}=${v}`)
+            .join('; ')
+            .trim();
+        if (headers) {
+            if (typeof headers['Cookie'] === 'string') {
+                const cookieEntries = Object.entries(cookies);
+                const oldCookies = headers['Cookie']
+                    .split(';')
+                    .map((e) => e.trim().split('='));
+
+                for (const [name, value] of cookieEntries) {
+                    const cookieIndex = oldCookies.findIndex(
+                        ([n]) => n === name,
+                    );
+                    if (cookieIndex !== -1) {
+                        oldCookies[cookieIndex][1] = value;
+                    } else {
+                        oldCookies.push([name, value]);
+                    }
+                }
+                cookiesStr = oldCookies
+                    .map(([k, v]) => `${k}=${v}`)
+                    .join('; ')
+                    .trim();
+            }
+
+            headers['Cookie'] = cookiesStr;
+        }
+        return cookiesStr;
+    }
+
     public fetch<T = any, D = any>(
         url: string,
         options: {
@@ -124,14 +174,6 @@ export class YSTUProvider {
         } = options;
         method = method.toUpperCase() as Method;
 
-        axiosConfig.beforeRedirect = (opts, responseDetails) => {
-            if (responseDetails.headers) {
-                this.updateCookies(
-                    responseDetails.headers['set-cookie'] as any,
-                ).then();
-            }
-        };
-
         if (!axiosConfig.headers) {
             axiosConfig.headers = {
                 'Cache-Control': 'no-cache',
@@ -148,21 +190,32 @@ export class YSTUProvider {
             }
         }
 
-        if (this.cookies) {
-            const cookies = Object.entries(this.cookies)
-                .map(([k, v]) => `${k}=${v}`)
-                .join('; ')
-                .trim();
-            if (axiosConfig.headers['Cookie']) {
-                axiosConfig.headers['Cookie'] += `; ${cookies}`;
-            } else {
-                axiosConfig.headers['Cookie'] = cookies;
+        this.tryInjectCookeis(axiosConfig.headers);
+
+        axiosConfig.beforeRedirect = (opts, responseDetails) => {
+            let setCookie = responseDetails?.headers?.[
+                'set-cookie'
+            ] as unknown as string[];
+            if (responseDetails.headers) {
+                this.updateCookies(setCookie).then();
             }
-        }
+
+            if (!('Cookies' in opts.headers)) {
+                this.tryInjectCookeis(opts.headers, setCookie);
+            }
+        };
 
         axiosConfig.params = method === 'GET' ? postData : {};
         axiosConfig.url = url;
         axiosConfig.method = method;
+
+        // this.logger.debug(`[Fetch] (${method}) "${url}"`, {
+        //     postData,
+        //     useCache,
+        //     bypassCache,
+        //     useReauth,
+        //     axiosConfig,
+        // });
 
         let file: [string, string];
         if (useCache) {
@@ -178,7 +231,7 @@ export class YSTUProvider {
                     const { data } = await cacheManager.readData<{
                         data: string;
                     }>(file);
-                    if (!data.includes('input type="submit" name="login1"')) {
+                    if (!data.toLowerCase().includes(hasLogin1)) {
                         return { isCache: true, data };
                     }
                 }
@@ -192,10 +245,7 @@ export class YSTUProvider {
 
             // TODO: check content `site is blocked`
 
-            if (
-                useReauth &&
-                response.data.includes('input type="submit" name="login1"')
-            ) {
+            if (useReauth && response.data.toLowerCase().includes(hasLogin1)) {
                 this.logger.debug('Reauthorization attempt...');
 
                 const success = await this.startAuth();
@@ -250,6 +300,10 @@ export class YSTUProvider {
             },
             useReauth: false,
         });
+
+        if (auth1Response.data.toLowerCase().includes()) {
+            throw new Error('FTW #45');
+        }
 
         // check content on `auth1.php`
         if (auth1Response.data.toLowerCase().includes('<a href="auth.php">')) {
