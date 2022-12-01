@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from 'axios';
+import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import * as Iconv from 'iconv-lite';
 import * as FormData from 'form-data';
@@ -33,6 +33,8 @@ export class YSTUProvider {
 
     constructor(private readonly httpService: HttpService) {
         httpService.axiosRef.defaults.baseURL = xEnv.YSTU_URL;
+        httpService.axiosRef.defaults.timeout = xEnv.YSTU_HTTP_TIMEOUT;
+
         httpService.axiosRef.interceptors.request.use((config) => {
             if (!config.url.toLowerCase().includes('/WPROG/'.toLowerCase())) {
                 return config;
@@ -300,8 +302,7 @@ export class YSTUProvider {
             }
             return response;
         } catch (err) {
-            if (err instanceof Error /* || err instanceof AxiosError */) {
-                this.logger.error(`Fetch: ${err.message}`);
+            if (err instanceof Error) {
                 if (
                     ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNABORTED'].some((e) =>
                         err.message.includes(e),
@@ -309,6 +310,9 @@ export class YSTUProvider {
                 ) {
                     const cacheData = await getCacheData(true, true);
                     if (cacheData) {
+                        this.logger.warn(
+                            `Fetch: ${err.message}. Using cache...`,
+                        );
                         return {
                             error: { message: err.message },
                             ...cacheData,
@@ -316,6 +320,7 @@ export class YSTUProvider {
                     }
                 }
                 if (nullOnError) {
+                    this.logger.error(`Fetch fail: [${method}] ${err.message}`);
                     return null;
                 }
                 throw err;
@@ -523,7 +528,7 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                axiosConfig: { timeout: 10e3 },
+                // axiosConfig: { timeout: 10e3 },
             },
         );
         const html = raspz_prepResponse?.data;
@@ -549,7 +554,7 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                axiosConfig: { timeout: 10e3 },
+                // axiosConfig: { timeout: 10e3 },
             },
         );
         const html = raspz_prepResponse?.data;
@@ -575,7 +580,7 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                axiosConfig: { timeout: 10e3 },
+                // axiosConfig: { timeout: 10e3 },
             },
         );
 
@@ -598,7 +603,7 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                axiosConfig: { timeout: 10e3 },
+                // axiosConfig: { timeout: 10e3 },
             },
         );
 
