@@ -1,4 +1,5 @@
 import {
+    BadGatewayException,
     BadRequestException,
     Injectable,
     Logger,
@@ -31,7 +32,8 @@ export class YSTUService implements OnModuleInit {
     async onModuleInit() {
         this.logger.log('Start initializing provider...');
         if (!(await this.ystuProvider.init())) {
-            throw new Error('Failed to initialize YSTU provider');
+            // throw new Error('Failed to initialize YSTU provider');
+            this.logger.warn('Workink in offline mode');
         }
         await this.ystuCollector.init();
         this.logger.log('Initializing provider finished');
@@ -117,19 +119,33 @@ export class YSTUService implements OnModuleInit {
     public getScheduleByGroup(
         name: string,
         short?: boolean,
+        forceCache?: boolean,
     ): Promise<{ isCache: boolean; items: OneWeek[] }>;
     public getScheduleByGroup(
         name: string,
         short: true,
+        forceCache?: boolean,
     ): Promise<{ isCache: boolean; items: MixedDay[] }>;
-    public async getScheduleByGroup(name: string, short = false) {
+    public async getScheduleByGroup(
+        name: string,
+        short = false,
+        forceCache = false,
+    ) {
         const file: [string, string] = ['schedule', name.toLowerCase()];
-        const isTimeout = await cacheManager.checkTimeout(file);
+        const remainedTime = await cacheManager.checkTimeout(file, true);
 
-        if (isTimeout === false) {
-            const cacheData = await cacheManager.readData(file);
-            if (cacheData.length) {
-                return { isCache: true, items: cacheData };
+        if (
+            forceCache ||
+            ((remainedTime === -1 || remainedTime > 60 * 5) &&
+                Math.random() > 0.2)
+        ) {
+            const cacheData = await cacheManager.read(file);
+            if (cacheData?.data.length) {
+                // Prolong ttl if more than half the time has passed
+                if (forceCache && remainedTime < cacheData.ttl / 2) {
+                    await cacheManager.prolongTimeout(file);
+                }
+                return { isCache: true, items: cacheData.data };
             }
         }
 
@@ -143,7 +159,17 @@ export class YSTUService implements OnModuleInit {
         const scheduleResponse = await this.ystuProvider.fetch(groupInfo.link, {
             useCache: true,
             bypassCache: true,
+            nullOnError: true,
         });
+        if (!scheduleResponse) {
+            if (!forceCache) {
+                return await this.getScheduleByGroup(name, short, true);
+            }
+            throw new BadGatewayException(
+                'connection problem with the YSTU server',
+            );
+        }
+
         const scheduleData = await cherrioParser.getSchedule(
             scheduleResponse.data,
             short,
@@ -154,13 +180,20 @@ export class YSTUService implements OnModuleInit {
             for (const link of groupInfo.linksLecture) {
                 const scheduleLectureResponse = await this.ystuProvider.fetch(
                     link,
+                    {
+                        useCache: true,
+                        bypassCache: true,
+                        nullOnError: true,
+                    },
                 );
-                scheduleLectureData.push(
-                    ...(await cherrioParser.getSchedule(
-                        scheduleLectureResponse.data,
-                        short,
-                    )),
-                );
+                if (scheduleLectureResponse) {
+                    scheduleLectureData.push(
+                        ...(await cherrioParser.getSchedule(
+                            scheduleLectureResponse.data,
+                            short,
+                        )),
+                    );
+                }
             }
         }
 

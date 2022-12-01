@@ -98,6 +98,11 @@ export const SWAGGER_ACCESS_PASSWORD: string =
 export const YSTU_USERNAME: string = process.env.YSTU_USERNAME || '';
 export const YSTU_PASSWORD: string = process.env.YSTU_PASSWORD || '';
 
+// * Cache maanger
+/** Default cahce ttl (in seconds) */
+export const CACHE_MANAGER_TTL: number =
+    +process.env.CACHE_MANAGER_TTL || 60 * 60 * 24 * 3;
+
 // * Delays (in seconds)
 
 export const YSTU_COLLECTOR_DELAY_LOOP: number =

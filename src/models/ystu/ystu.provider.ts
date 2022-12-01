@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
-import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
+import { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import * as Iconv from 'iconv-lite';
 import * as FormData from 'form-data';
@@ -140,6 +140,7 @@ export class YSTUProvider {
             useCache: true | number;
             bypassCache?: boolean;
             useReauth?: boolean;
+            nullOnError?: boolean;
         },
     ): Promise<AxiosResponse<T, D> | { isCache: true; data: any }>;
     public fetch<T = any, D = any>(
@@ -151,6 +152,7 @@ export class YSTUProvider {
             useCache?: false;
             bypassCache?: boolean;
             useReauth?: boolean;
+            nullOnError?: boolean;
         },
     ): Promise<AxiosResponse<T, D>>;
     public async fetch(
@@ -162,6 +164,7 @@ export class YSTUProvider {
             useCache?: boolean | number;
             bypassCache?: boolean;
             useReauth?: boolean;
+            nullOnError?: boolean;
         } = {},
     ) {
         let {
@@ -171,6 +174,7 @@ export class YSTUProvider {
             useCache = false,
             bypassCache = false,
             useReauth = true,
+            nullOnError = false,
         } = options;
         method = method.toUpperCase() as Method;
 
@@ -217,24 +221,55 @@ export class YSTUProvider {
         //     axiosConfig,
         // });
 
-        let file: [string, string];
-        if (useCache) {
+        const getFilePath = () => {
             const cloneConfig = JSON.parse(JSON.stringify(axiosConfig));
             // * to bypass duplicate caches from different PHPSESSID
             delete cloneConfig?.['headers'];
             const hash = md5(JSON.stringify(cloneConfig));
-            file = ['web', `${url}_${method}_${hash}`];
-            if (!bypassCache) {
-                const isTimeout = await cacheManager.checkTimeout(file);
+            const file = ['web', `${url}_${method}_${hash}`] as [
+                string,
+                string,
+            ];
+            return file;
+        };
 
-                if (isTimeout === false) {
-                    const { data } = await cacheManager.readData<{
+        let file = useCache && getFilePath();
+
+        const getCacheData = async (force = false, prolong = false) => {
+            if (force || !bypassCache) {
+                if (!file) {
+                    file = getFilePath();
+                }
+                const remainedTime = await cacheManager.checkTimeout(
+                    file,
+                    true,
+                );
+
+                if (force || remainedTime === -1 || remainedTime > 0) {
+                    const cacheData = await cacheManager.read<{
                         data: string;
-                    }>(file);
-                    if (!data.toLowerCase().includes(hasLogin1)) {
-                        return { isCache: true, data };
+                    } | null>(file);
+                    if (
+                        cacheData &&
+                        !cacheData.data?.data.toLowerCase().includes(hasLogin1)
+                    ) {
+                        // Prolong ttl if more than half the time has passed
+                        if (prolong && remainedTime < cacheData.ttl / 2) {
+                            await cacheManager.prolongTimeout(
+                                file /* , false */,
+                            );
+                        }
+                        return { isCache: true, data: cacheData.data };
                     }
                 }
+            }
+            return null;
+        };
+
+        if (useCache) {
+            const cacheData = await getCacheData();
+            if (cacheData) {
+                return cacheData;
             }
         }
 
@@ -265,7 +300,24 @@ export class YSTUProvider {
             }
             return response;
         } catch (err) {
-            if (err instanceof Error) {
+            if (err instanceof Error /* || err instanceof AxiosError */) {
+                this.logger.error(`Fetch: ${err.message}`);
+                if (
+                    ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNABORTED'].some((e) =>
+                        err.message.includes(e),
+                    )
+                ) {
+                    const cacheData = await getCacheData(true, true);
+                    if (cacheData) {
+                        return {
+                            error: { message: err.message },
+                            ...cacheData,
+                        };
+                    }
+                }
+                if (nullOnError) {
+                    return null;
+                }
                 throw err;
             }
             return err as AxiosResponse;
@@ -350,11 +402,21 @@ export class YSTUProvider {
             raspzListExtramuralResponse,
             raspzListAdditionalLectureResponse,
         ] = await Promise.all([
-            linkToFullList && this.fetch(linkToFullList, { useCache: true }),
+            linkToFullList &&
+                this.fetch(linkToFullList, {
+                    useCache: true,
+                    nullOnError: true,
+                }),
             linkToExtramural &&
-                this.fetch(linkToExtramural, { useCache: true }),
+                this.fetch(linkToExtramural, {
+                    useCache: true,
+                    nullOnError: true,
+                }),
             linkToAdditionalLecture &&
-                this.fetch(linkToAdditionalLecture, { useCache: true }),
+                this.fetch(linkToAdditionalLecture, {
+                    useCache: true,
+                    nullOnError: true,
+                }),
         ]);
 
         let instituteLinks: InstituteLinkType[] = [];
@@ -403,7 +465,13 @@ export class YSTUProvider {
             await cacheManager.update(
                 ['links', 'instituteLinks'],
                 instituteLinks,
+                -1,
             );
+        } else {
+            instituteLinks = await cacheManager.readData([
+                'links',
+                'instituteLinks',
+            ]);
         }
 
         let extramuralLinks: InstituteLinkType[] = [];
@@ -419,7 +487,13 @@ export class YSTUProvider {
             await cacheManager.update(
                 ['links', 'extramuralLinks'],
                 extramuralLinks,
+                -1,
             );
+        } else {
+            extramuralLinks = await cacheManager.readData([
+                'links',
+                'extramuralLinks',
+            ]);
         }
 
         return [instituteLinks, extramuralLinks] as const;

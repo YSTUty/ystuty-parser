@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import * as Fs from 'fs-extra';
 import * as Path from 'path';
 import * as lodash from 'lodash';
@@ -180,6 +181,38 @@ export class CacheManager {
                 : (ttl - (Date.now() - (time || 0)) / 1e3) | 0;
         }
         return ttl === -1 ? false : Date.now() - (time || 0) > ttl * 1e3;
+    }
+
+    public async prolongTimeout(
+        file: PathType,
+        ttl: number = xEnv.CACHE_MANAGER_TTL,
+    ) {
+        // await this.update(file, null, xEnv.CACHE_MANAGER_TTL);
+        Logger.log(
+            `Prolong: (${file}) set TTL [${ttl}] seconds`,
+            'CacheManager',
+        );
+
+        const arFile = await this.parseFilePath(file);
+        if (!arFile) {
+            return false;
+        }
+        const [apath, afile] = arFile;
+
+        const path = this.getPath(apath, afile);
+        const name = this.genName(afile);
+
+        const { data, ttl: lastTtl } = await this.read(file, true);
+
+        this.cache[name] = {
+            time: Date.now(),
+            ttl: ttl || lastTtl,
+            data,
+            source: afile,
+        };
+
+        await Fs.writeFile(path, JSON.stringify(this.cache[name], null, 2));
+        return true;
     }
 
     public async clearOfGarbage(maxCount = 100, subpath: string[] = []) {
