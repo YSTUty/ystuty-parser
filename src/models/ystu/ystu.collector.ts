@@ -128,7 +128,10 @@ export class YSTUCollector {
                         this.accumulativeSchedule.filter((e) =>
                             audienceIds.includes(e.id),
                         );
-                    audienceChunks = chunk(audiences, 3);
+                    audienceChunks = chunk(
+                        audiences,
+                        xEnv.YSTU_COLLECTOR_QUEUE_CHUNK,
+                    );
                 }
 
                 //

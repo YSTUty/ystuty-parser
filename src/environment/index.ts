@@ -104,6 +104,10 @@ export const YSTU_PASSWORD: string = process.env.YSTU_PASSWORD || '';
 export const CACHE_MANAGER_TTL: number =
     +process.env.CACHE_MANAGER_TTL || 60 * 60 * 24 * 3;
 
+// * Collector
+export const YSTU_COLLECTOR_QUEUE_CHUNK: number =
+    +process.env.YSTU_COLLECTOR_QUEUE_CHUNK || 3;
+
 // * Delays (in seconds)
 
 export const YSTU_COLLECTOR_DELAY_LOOP: number =
