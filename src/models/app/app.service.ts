@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { cacheManager } from '@my-common';
+import * as xEnv from '@my-environment';
+import { cacheManager, delay } from '@my-common';
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -15,7 +16,7 @@ export class AppService implements OnModuleInit {
     }
 
     public async clearCacheGarbage() {
-        await new Promise((resolve) => setTimeout(resolve, 1 * 60 * 1e3));
+        await delay(1 * 60 * 1e3);
 
         const loop = async () => {
             try {
@@ -28,8 +29,7 @@ export class AppService implements OnModuleInit {
                 this.logger.error(err);
             }
 
-            // 2 minutes
-            await new Promise((resolve) => setTimeout(resolve, 2 * 60 * 1e3));
+            await delay(xEnv.APP_CACHE_CLEANER_DELAY * 1e3);
 
             setImmediate(loop);
         };

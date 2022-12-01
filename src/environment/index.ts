@@ -1,12 +1,5 @@
-import { resolve } from 'path';
-import { config } from 'dotenv';
+import 'dotenv/config';
 // import { ExtractJwt } from 'passport-jwt';
-
-const repoBranch = '';
-
-config({
-    path: resolve(process.cwd(), `.env${repoBranch ? `.${repoBranch}` : ''}`),
-});
 
 export enum EnvType {
     DEV = 'development',
@@ -104,3 +97,17 @@ export const SWAGGER_ACCESS_PASSWORD: string =
 
 export const YSTU_USERNAME: string = process.env.YSTU_USERNAME || '';
 export const YSTU_PASSWORD: string = process.env.YSTU_PASSWORD || '';
+
+// * Delays (in seconds)
+
+export const YSTU_COLLECTOR_DELAY_LOOP: number =
+    +process.env.YSTU_COLLECTOR_DELAY_LOOP || 5 * 60;
+
+export const YSTU_COLLECTOR_DELAY_UPDATER: number =
+    +process.env.YSTU_COLLECTOR_DELAY_UPDATER || 5 * 60;
+
+export const YSTU_COLLECTOR_DELAY_QUEUE: number =
+    +process.env.YSTU_COLLECTOR_DELAY_QUEUE || 10;
+
+export const APP_CACHE_CLEANER_DELAY: number =
+    +process.env.APP_CACHE_CLEANER_DELAY || 2 * 60;

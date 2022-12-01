@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import * as xEnv from '@my-environment';
 import { ITeacherData, IAudienceData } from '@my-interfaces';
+import { delay } from '@my-common';
 
 import { YSTUProvider } from './ystu.provider';
 import { AccumulativeSchedule } from './entity/accumulative-schedule.entity';
@@ -33,10 +35,7 @@ export class YSTUCollector {
     private async startLoop() {
         const loop = async (first = false) => {
             if (!first) {
-                await new Promise((resolve) =>
-                    // 5 minutes
-                    setTimeout(resolve, 5 * 60 * 1e3),
-                );
+                await delay(xEnv.YSTU_COLLECTOR_DELAY_LOOP * 1e3);
             }
 
             try {
@@ -135,10 +134,7 @@ export class YSTUCollector {
                 //
                 const queueAudiences = audienceChunks.shift();
                 if (audienceChunks.length === 0) {
-                    // Cooldown for 5 minutes
-                    await new Promise((resolve) =>
-                        setTimeout(resolve, 5 * 60 * 1e3),
-                    );
+                    await delay(xEnv.YSTU_COLLECTOR_DELAY_UPDATER * 1e3);
                 }
 
                 yield queueAudiences;
@@ -146,8 +142,7 @@ export class YSTUCollector {
                 this.logger.error(err);
             }
 
-            // Wait 10 second
-            await new Promise((resolve) => setTimeout(resolve, 10 * 1e3));
+            await delay(xEnv.YSTU_COLLECTOR_DELAY_QUEUE * 1e3);
         } while (!this.aborted);
     }
 
