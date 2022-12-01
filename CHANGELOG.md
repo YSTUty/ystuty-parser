@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.14](https://github.com/YSTUty/ystuty-parser/compare/v0.0.13...v0.0.14) (2022-12-01)
+
+
+### 🐛 Bug Fixes
+
+* **ystu:** fixed auth ([8f9b7ad](https://github.com/YSTUty/ystuty-parser/commit/8f9b7ad369d8140733e6790776b01aa5e641266e))
+
+
+### 🌟 Feature Improvements
+
+* **cache:** configurable default ttl and deleting garbage `onlyMemory` ([80ecf0f](https://github.com/YSTUty/ystuty-parser/commit/80ecf0f2d311bd56696fd4d2a19193cb80a161ec))
+* **ystu:** added `offline` mode ([89f6925](https://github.com/YSTUty/ystuty-parser/commit/89f69256181376b20ed093d8f5f9a8f7547d9aa8))
+
+
+### 🚀 Features
+
+* **env:** added configurable `timeout` for ystu http request ([f4c8e74](https://github.com/YSTUty/ystuty-parser/commit/f4c8e74982a27f052e23275130f24c9e72fec2cc))
+* **env:** added configurable delays ([15325bf](https://github.com/YSTUty/ystuty-parser/commit/15325bf443d87ec152fc305d7b4d052df86eed47))
+
 ### [0.0.13](https://github.com/YSTUty/ystuty-parser/compare/v0.0.12...v0.0.13) (2022-11-02)
 
 
