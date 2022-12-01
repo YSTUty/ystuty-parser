@@ -528,11 +528,14 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                // axiosConfig: { timeout: 10e3 },
+                nullOnError: true,
             },
         );
-        const html = raspz_prepResponse?.data;
+        if (!raspz_prepResponse) {
+            return null;
+        }
 
+        const html = raspz_prepResponse?.data;
         const teachersData = await cherrioParser.getTeachersScheduleFormData(
             html,
         );
@@ -554,11 +557,14 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                // axiosConfig: { timeout: 10e3 },
+                nullOnError: true,
             },
         );
-        const html = raspz_prepResponse?.data;
+        if (!raspz_prepResponse) {
+            return null;
+        }
 
+        const html = raspz_prepResponse?.data;
         const audiencesData = await cherrioParser.getAudiencesScheduleFormData(
             html,
         );
@@ -580,9 +586,12 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                // axiosConfig: { timeout: 10e3 },
+                nullOnError: true,
             },
         );
+        if (!raspz_prep1Response) {
+            return null;
+        }
 
         const html = raspz_prep1Response?.data;
         const teacherSchedule = await cherrioParser.getTeacherSchedule(html);
@@ -603,9 +612,12 @@ export class YSTUProvider {
                 bypassCache,
                 method: 'POST',
                 postData,
-                // axiosConfig: { timeout: 10e3 },
+                nullOnError: true,
             },
         );
+        if (!raspz_prep1Response) {
+            return null;
+        }
 
         const html = raspz_prep1Response?.data;
         const audienceSchedule = await cherrioParser.getAudienceSchedule(html);

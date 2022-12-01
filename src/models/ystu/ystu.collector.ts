@@ -40,7 +40,7 @@ export class YSTUCollector {
 
             try {
                 const teachersData = await this.ystuProvider.getTeachers(false);
-                if (teachersData.length === 0) {
+                if (!teachersData || teachersData.length === 0) {
                     throw new Error('Empty array for teachers');
                 }
                 this.teachersData = teachersData;
@@ -52,7 +52,7 @@ export class YSTUCollector {
                 const audiencesData = await this.ystuProvider.getAudiences(
                     false,
                 );
-                if (audiencesData.length === 0) {
+                if (!audiencesData || audiencesData.length === 0) {
                     throw new Error('Empty array for audiences');
                 }
                 this.audiencesData = audiencesData;
@@ -75,10 +75,10 @@ export class YSTUCollector {
                 const audiencesWithSchedule = await Promise.all(
                     queueAudiences.map(async (audience) => ({
                         ...audience,
-                        items: await this.ystuProvider.getScheduleByAudience(
-                            audience.id,
-                            // true,
-                        ),
+                        items:
+                            (await this.ystuProvider.getScheduleByAudience(
+                                audience.id,
+                            )) || [],
                     })),
                 );
 
@@ -173,6 +173,9 @@ export class YSTUCollector {
             teacher.id,
             bypassCache,
         );
+        if (!items) {
+            return null;
+        }
         return { teacher: { id: teacher.id, name: teacher.name }, items };
     }
 
@@ -203,6 +206,9 @@ export class YSTUCollector {
             audience.id,
             bypassCache,
         );
+        if (!items) {
+            return null;
+        }
         return { audience: { id: audience.id, name: audience.name }, items };
     }
 
