@@ -2,7 +2,7 @@ import * as Fs from 'fs-extra';
 import * as Path from 'path';
 import * as lodash from 'lodash';
 
-import { CACHE_PATH } from '@my-environment';
+import * as xEnv from '@my-environment';
 import { md5 } from '@my-common';
 
 export type CacheData<T = any> = {
@@ -20,7 +20,7 @@ export type PathType = string | [string, string];
 export class CacheManager {
     private cache: Record<string, CacheData> = {};
 
-    constructor(public readonly path = CACHE_PATH) {
+    constructor(public readonly path = xEnv.CACHE_PATH) {
         Fs.ensureDir(this.path).then();
     }
 
@@ -42,7 +42,7 @@ export class CacheManager {
         return this.update(file, data);
     }
 
-    public async delete(file: PathType) {
+    public async delete(file: PathType, onlyMemory = false) {
         const arFile = await this.parseFilePath(file);
         if (!arFile) {
             return;
@@ -53,7 +53,9 @@ export class CacheManager {
         const name = this.genName(afile);
         try {
             delete this.cache[name];
-            await Fs.unlink(path);
+            if (!onlyMemory) {
+                await Fs.unlink(path);
+            }
         } catch (err) {}
     }
 
@@ -61,9 +63,13 @@ export class CacheManager {
      * Update cache file
      * @param file Path to cache file
      * @param data Cache data
-     * @param ttl [ttl=3600] TTL in **seconds** *(if `-1`, then indefinite)*
+     * @param ttl TTL in **seconds** *(if `-1`, then indefinite)*
      */
-    public async update(file: PathType, data: any, ttl: number = 60 * 60) {
+    public async update(
+        file: PathType,
+        data: any,
+        ttl: number = xEnv.CACHE_MANAGER_TTL,
+    ) {
         const arFile = await this.parseFilePath(file);
         if (!arFile) {
             return false;
@@ -119,7 +125,11 @@ export class CacheManager {
         const str = await Fs.readFile(path, 'utf8');
         try {
             if (!str) return null;
-            return JSON.parse(str);
+            const data = JSON.parse(str);
+            if (!forceFile) {
+                this.cache[name] = data;
+            }
+            return data;
         } catch (err) {
             console.error(path, err);
             return null;
@@ -146,6 +156,9 @@ export class CacheManager {
 
     /**
      * Is cache file timeout
+     *
+     * @returns `number` in seconds (or `-1` if infinite) if withTime true,
+     * else `true` if timeout,`false` if not, `null` if file not exists
      */
     public async checkTimeout(file: PathType): Promise<boolean>;
     public async checkTimeout(file: PathType, withTime: true): Promise<number>;
@@ -162,7 +175,9 @@ export class CacheManager {
         const { time, ttl } = cache;
 
         if (withTime) {
-            return ttl === -1 ? -1 : ttl * 1e3 - (Date.now() - (time || 0));
+            return ttl === -1
+                ? -1
+                : (ttl - (Date.now() - (time || 0)) / 1e3) | 0;
         }
         return ttl === -1 ? false : Date.now() - (time || 0) > ttl * 1e3;
     }
@@ -194,6 +209,10 @@ export class CacheManager {
                     });
                     --maxCount;
                 } else {
+                    // Clear cache by memory (5 minutes)
+                    if (Date.now() - (time || 0) > 5 * 60 * 1e3) {
+                        this.delete(file, true);
+                    }
                     ++skipCount;
                 }
             } else {
