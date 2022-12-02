@@ -7,7 +7,7 @@ import {
     OnModuleInit,
 } from '@nestjs/common';
 import { IInstituteData } from '@my-interfaces';
-import { cacheManager } from '@my-common';
+import { cacheManager, delay } from '@my-common';
 
 import { YSTUProvider } from './ystu.provider';
 import { YSTUCollector } from './ystu.collector';
@@ -38,15 +38,28 @@ export class YSTUService implements OnModuleInit {
         await this.ystuCollector.init();
         this.logger.log('Initializing provider finished');
 
-        this.init().then();
+        this.startLoop().then(() => {
+            this.isLoaded = true;
+        });
     }
 
-    public async init() {
-        [this.instituteLinks, this.extramuralLinks] =
-            await this.ystuProvider.getRaspZLinks();
+    private async startLoop() {
+        const loop = async (first = false) => {
+            if (!first) {
+                // 12 hours delay
+                await delay(12 * 3600 * 1e3);
+            }
 
-        // ...
-        this.isLoaded = true;
+            try {
+                [this.instituteLinks, this.extramuralLinks] =
+                    await this.ystuProvider.getRaspZLinks();
+            } catch (err) {
+                this.logger.error(err);
+            }
+
+            setImmediate(loop);
+        };
+        await loop(true);
     }
 
     public async getMe() {
