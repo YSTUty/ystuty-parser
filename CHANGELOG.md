@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.15](https://github.com/YSTUty/ystuty-parser/compare/v0.0.14...v0.0.15) (2022-12-02)
+
+
+### 🚀 Features
+
+* **env:** added chunk size for collector queue ([ebb1694](https://github.com/YSTUty/ystuty-parser/commit/ebb1694100c8759e7eddff9f317702af28e3fe7e))
+
+
+### 🐛 Bug Fixes
+
+* **calendar:** check nullable teacher ([fec5ecf](https://github.com/YSTUty/ystuty-parser/commit/fec5ecfb3b46d258cbb64bd1d378d21ecda29585))
+
+
+### 🧹 Chore
+
+* **app:** return `uptime` to seconds ([61681e4](https://github.com/YSTUty/ystuty-parser/commit/61681e4f11b81cbef102bdc3e67694abf6a67f2f))
+* **env:** added default cache ttl env variable for http fetch ([af8f506](https://github.com/YSTUty/ystuty-parser/commit/af8f5062331669c729e0824f9f254f21bd2af264))
+* **ystu:** auto-cyclic updating institute links ([bea663c](https://github.com/YSTUty/ystuty-parser/commit/bea663cb9d7ad7468532e50b35ad86fdbbb2c262))
+* **ystu:** check on `null` response ([b3ea695](https://github.com/YSTUty/ystuty-parser/commit/b3ea695501062e32b52cb91ab959daf5bf1dda1d))
+
 ### [0.0.14](https://github.com/YSTUty/ystuty-parser/compare/v0.0.13...v0.0.14) (2022-12-01)
 
 
