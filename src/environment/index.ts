@@ -103,6 +103,9 @@ export const YSTU_PASSWORD: string = process.env.YSTU_PASSWORD || '';
 /** Default cahce ttl (in seconds) */
 export const CACHE_MANAGER_TTL: number =
     +process.env.CACHE_MANAGER_TTL || 60 * 60 * 24 * 3;
+/** Default cahce ttl for http fetch (in seconds) */
+export const CACHE_MANAGER_HTTP_FETCH_TTL: number =
+    +process.env.CACHE_MANAGER_HTTP_FETCH_TTL || CACHE_MANAGER_TTL;
 
 // * Collector
 export const YSTU_COLLECTOR_QUEUE_CHUNK: number =

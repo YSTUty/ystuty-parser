@@ -297,7 +297,9 @@ export class YSTUProvider {
                 await cacheManager.update(
                     file,
                     { data: response.data },
-                    typeof useCache === 'boolean' ? 60 * 30 : useCache,
+                    typeof useCache === 'boolean'
+                        ? xEnv.CACHE_MANAGER_HTTP_FETCH_TTL
+                        : useCache,
                 );
             }
             return response;
