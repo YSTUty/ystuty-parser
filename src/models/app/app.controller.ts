@@ -19,7 +19,7 @@ export class AppController {
 
     @Get('uptime')
     getTime() {
-        return `uptime:${Date.now() - this.timeStart}`;
+        return `uptime:${((Date.now() - this.timeStart) / 1e3) | 0}`;
     }
 
     @Get('cache_size')
