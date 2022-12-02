@@ -94,8 +94,11 @@ export class CalendarService {
     }
 
     public async generateCalenadrForTeacher(teacherId: number) {
-        const { teacher, items: schedule } =
-            await this.ystuCollector.getScheduleByTeacher(teacherId);
+        const data = await this.ystuCollector.getScheduleByTeacher(teacherId);
+        if (!data) {
+            return null;
+        }
+        const { teacher, items: schedule } = data;
 
         const calendar = ical()
             .name(`YSTUty [${teacher.name}]`)

@@ -1,4 +1,12 @@
-import { Controller, Get, Logger, Param, Req, Res } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Logger,
+    NotFoundException,
+    Param,
+    Req,
+    Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 
@@ -100,6 +108,9 @@ export class CalendarController {
         const calendar = await this.calendarService.generateCalenadrForTeacher(
             teacherId,
         );
+        if (!calendar) {
+            throw new NotFoundException('Teacher not found');
+        }
         calendar.serve(res, encodeURIComponent(`${teacherId}.ics`));
     }
 }
