@@ -293,7 +293,7 @@ export class YSTUProvider {
             }
 
             if (useCache) {
-                this.logger.debug(`[fetch] Update cache: ${url.slice(0, 35)}`);
+                this.logger.debug(`[fetch] Update cache: ${url.slice(0, 45)}`);
                 await cacheManager.update(
                     file,
                     { data: response.data },
@@ -304,30 +304,37 @@ export class YSTUProvider {
             }
             return response;
         } catch (err) {
-            if (err instanceof Error) {
-                if (
-                    ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNABORTED'].some((e) =>
-                        err.message.includes(e),
-                    )
-                ) {
-                    const cacheData = await getCacheData(true, true);
-                    if (cacheData) {
-                        this.logger.warn(
-                            `Fetch: ${err.message}. Using cache...`,
-                        );
-                        return {
-                            error: { message: err.message },
-                            ...cacheData,
-                        };
-                    }
-                }
-                if (nullOnError) {
-                    this.logger.error(`Fetch fail: [${method}] ${err.message}`);
-                    return null;
-                }
-                throw err;
+            if (!(err instanceof Error)) {
+                return err as AxiosResponse;
             }
-            return err as AxiosResponse;
+
+            if (
+                ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNABORTED', 'timeout'].some(
+                    (e) => err.message?.toLowerCase().includes(e.toLowerCase()),
+                )
+            ) {
+                const cacheData = await getCacheData(true, true);
+                if (cacheData) {
+                    this.logger.warn(`Fetch: ${err.message}. Using cache...`);
+
+                    return {
+                        error: { message: err.message },
+                        ...cacheData,
+                    };
+                }
+            }
+
+            if (nullOnError) {
+                this.logger.error(
+                    `Fetch fail: [${method}] "${err.message}" (${url.slice(
+                        0,
+                        45,
+                    )})`,
+                );
+                return null;
+            }
+
+            throw err;
         }
     }
 
