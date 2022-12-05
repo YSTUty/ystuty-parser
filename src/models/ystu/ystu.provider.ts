@@ -433,6 +433,7 @@ export class YSTUProvider {
                 }),
         ]);
 
+        const institutePath = ['links', 'instituteLinks'] as [string, string];
         let instituteLinks: InstituteLinkType[] = [];
         if (raspzListResponse) {
             const response = cherrioParser.getInstituteLinks(
@@ -476,18 +477,14 @@ export class YSTUProvider {
                     this.logger.error(err);
                 }
             }
-            await cacheManager.update(
-                ['links', 'instituteLinks'],
-                instituteLinks,
-                -1,
-            );
+            if (instituteLinks.length > 0) {
+                await cacheManager.update(institutePath, instituteLinks, -1);
+            }
         } else {
-            instituteLinks = await cacheManager.readData([
-                'links',
-                'instituteLinks',
-            ]);
+            instituteLinks = await cacheManager.readData(institutePath);
         }
 
+        const extramuralPath = ['links', 'extramuralLinks'] as [string, string];
         let extramuralLinks: InstituteLinkType[] = [];
         if (raspzListExtramuralResponse) {
             const response = cherrioParser.getInstituteLinks(
@@ -498,16 +495,11 @@ export class YSTUProvider {
             this.logger.log(
                 `Getting schedule for "extramuralLinks": ${scheduleName}`,
             );
-            await cacheManager.update(
-                ['links', 'extramuralLinks'],
-                extramuralLinks,
-                -1,
-            );
+            if (extramuralLinks.length > 0) {
+                await cacheManager.update(extramuralPath, extramuralLinks, -1);
+            }
         } else {
-            extramuralLinks = await cacheManager.readData([
-                'links',
-                'extramuralLinks',
-            ]);
+            extramuralLinks = await cacheManager.readData(extramuralPath);
         }
 
         return [instituteLinks, extramuralLinks] as const;
