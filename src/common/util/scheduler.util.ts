@@ -15,3 +15,20 @@ export const getLessonTypeStrArr = (type: LessonFlags) => {
     if (type & LessonFlags.None) types.push('???');
     return types;
 };
+
+export const normalizeScheduleLink = (link: string) => {
+    const [url, queryStr] = link.split('?');
+    const query = new URLSearchParams(queryStr);
+    for (const [key, value] of query) {
+        if (
+            !['raspz', 'idgr'].some((e) => key.includes(e)) ||
+            isNaN(+value) ||
+            value.length < 9
+        ) {
+            continue;
+        }
+        const targetNum = value.slice(4, -4);
+        query.set(key, `xxx${targetNum}xxx`);
+    }
+    return [url, query.toString()].join('?');
+};

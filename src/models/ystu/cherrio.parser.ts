@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import * as chTableParser from 'cheerio-tableparser';
 import { IAudienceData, ITeacherData } from '@my-interfaces';
+import { normalizeScheduleLink } from '@my-common';
 
 import * as scheduleParser from './schedule.parser';
 
@@ -57,7 +58,9 @@ export const getInstituteLinks = (html: string) => {
 
             const lectureLinks = contentLectureHTML.toArray().map((el) => ({
                 name: $(el).text(),
-                link: '/WPROG/rasp/' + $(el).attr('href'),
+                link: normalizeScheduleLink(
+                    `/WPROG/rasp/${$(el).attr('href')}`,
+                ),
             }));
 
             const groups = contentHTML.toArray().map((el) => {
@@ -67,7 +70,9 @@ export const getInstituteLinks = (html: string) => {
                 ).link;
                 return {
                     name,
-                    link: '/WPROG/rasp/' + $(el).attr('href'),
+                    link: normalizeScheduleLink(
+                        '/WPROG/rasp/' + $(el).attr('href'),
+                    ),
                     linksLecture: linkLecture ? [linkLecture] : [],
                 };
             });
