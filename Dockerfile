@@ -24,7 +24,7 @@ RUN yarn install --pure-lockfile; \
     yarn cache clean
 
 ##
-# [container] Production
+# [container] Base
 ##
 FROM node:14-alpine AS base
 
@@ -34,8 +34,6 @@ COPY --from=deps /deps/node_modules ./node_modules
 
 COPY . ./
 
-RUN yarn build
-
 ##
 # [container] Production
 ##
@@ -43,3 +41,5 @@ FROM base AS production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
+
+RUN yarn build
