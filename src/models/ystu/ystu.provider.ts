@@ -144,7 +144,7 @@ export class YSTUProvider {
             useReauth?: boolean;
             nullOnError?: boolean;
         },
-    ): Promise<AxiosResponse<T, D> | { isCache: true; data: any }>;
+    ): Promise<AxiosResponse<T, D> | { isCache?: true; data: any }>;
     public fetch<T = any, D = any>(
         url: string,
         options?: {
@@ -261,7 +261,7 @@ export class YSTUProvider {
                                 file /* , false */,
                             );
                         }
-                        return { isCache: true, data: cacheData.data };
+                        return { isCache: true, ...cacheData.data };
                     }
                 }
             }
@@ -282,7 +282,11 @@ export class YSTUProvider {
 
             // TODO: check content `site is blocked`
 
-            if (useReauth && response.data.toLowerCase().includes(hasLogin1)) {
+            if (
+                useReauth &&
+                typeof response.data === 'string' &&
+                response.data.toLowerCase().includes(hasLogin1)
+            ) {
                 this.logger.debug('Reauthorization attempt...');
 
                 const success = await this.startAuth();
