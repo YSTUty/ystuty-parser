@@ -1,42 +1,37 @@
 export const memorySizeOf = (obj: any) => {
-    let bytes = 0;
-
     function sizeOf(obj) {
-        if (obj !== null && obj !== undefined) {
-            switch (typeof obj) {
-                case 'number': {
-                    bytes += 8;
-                    break;
+        if (obj === null || obj === undefined) {
+            return 0;
+        }
+        switch (typeof obj) {
+            case 'number':
+                return 8;
+            case 'string':
+                return obj.length * 2;
+            case 'boolean':
+                return 4;
+            case 'object': {
+                const objClass = Object.prototype.toString
+                    .call(obj)
+                    .slice(8, -1);
+                if (objClass === 'Object' || objClass === 'Array') {
+                    let bytes = 0;
+                    for (const key in obj) {
+                        if (!obj.hasOwnProperty(key)) continue;
+                        bytes += sizeOf(obj[key]);
+                    }
+                    return bytes;
                 }
-                case 'string': {
-                    bytes += obj.length * 2;
-                    break;
-                }
-                case 'boolean': {
-                    bytes += 4;
-                    break;
-                }
-                case 'object': {
-                    const objClass = Object.prototype.toString
-                        .call(obj)
-                        .slice(8, -1);
-                    if (objClass === 'Object' || objClass === 'Array') {
-                        for (const key in obj) {
-                            if (!obj.hasOwnProperty(key)) continue;
-                            sizeOf(obj[key]);
-                        }
-                    } else bytes += obj.toString().length * 2;
-                    break;
-                }
+                return obj.toString?.().length * 2;
             }
         }
-        return bytes;
+        return 0;
     }
     return sizeOf(obj);
 };
 
 export const formatByteSize = (bytes: number) =>
-    bytes < 2 ** 10
+    bytes === Infinity || bytes < 2 ** 10
         ? bytes + ' bytes'
         : bytes < 2 ** 20
         ? (bytes / 2 ** 10).toFixed(3) + ' KiB'
