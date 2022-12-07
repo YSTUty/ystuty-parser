@@ -146,12 +146,26 @@ export class YSTUProvider {
             method?: Method;
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
-            useCache: true | number;
+            useCache?: boolean;
+            onlyCache: true;
             bypassCache?: boolean;
             useReauth?: boolean;
             nullOnError?: boolean;
         },
-    ): Promise<AxiosResponse<T, D> | { isCache?: true; data: any }>;
+    ): Promise<{ isCache: true; data: any } | null>;
+    public fetch<T = any, D = any>(
+        url: string,
+        options: {
+            method?: Method;
+            postData?: any;
+            axiosConfig?: AxiosRequestConfig<any>;
+            useCache: true | number;
+            onlyCache?: false;
+            bypassCache?: boolean;
+            useReauth?: boolean;
+            nullOnError?: boolean;
+        },
+    ): Promise<AxiosResponse<T, D> | { isCache: true; data: any }>;
     public fetch<T = any, D = any>(
         url: string,
         options?: {
@@ -159,6 +173,7 @@ export class YSTUProvider {
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
             useCache?: false;
+            onlyCache?: false;
             bypassCache?: boolean;
             useReauth?: boolean;
             nullOnError?: boolean;
@@ -171,6 +186,7 @@ export class YSTUProvider {
             postData?: any;
             axiosConfig?: AxiosRequestConfig<any>;
             useCache?: boolean | number;
+            onlyCache?: boolean;
             bypassCache?: boolean;
             useReauth?: boolean;
             nullOnError?: boolean;
@@ -180,11 +196,15 @@ export class YSTUProvider {
             method = 'GET',
             postData = {},
             axiosConfig = {},
+            onlyCache = false,
             useCache = false,
             bypassCache = false,
             useReauth = true,
             nullOnError = false,
         } = options;
+        if (onlyCache) {
+            useCache = true;
+        }
         method = method.toUpperCase() as Method;
 
         if (!axiosConfig.headers) {
@@ -285,6 +305,9 @@ export class YSTUProvider {
             const cacheData = await getCacheData();
             if (cacheData) {
                 return cacheData;
+            }
+            if (onlyCache) {
+                return null;
             }
         }
 
@@ -626,6 +649,7 @@ export class YSTUProvider {
     public async getScheduleByTeacher(
         teacherId: number,
         bypassCache: boolean = false,
+        onlyCache: true | null = null,
     ) {
         const { datt0, datt1 } = this.getDatt();
         const postData = { datt0, datt1, idprep: teacherId };
@@ -634,6 +658,7 @@ export class YSTUProvider {
             '/WPROG/rasp/raspz_prep1.php',
             {
                 useCache: true,
+                onlyCache,
                 bypassCache,
                 method: 'POST',
                 postData,
@@ -652,6 +677,7 @@ export class YSTUProvider {
     public async getScheduleByAudience(
         audienceId: number,
         bypassCache: boolean = false,
+        onlyCache: true | null = null,
     ) {
         const { datt0, datt1 } = this.getDatt();
         const postData = { datt0, datt1, idaudi: audienceId };
@@ -660,6 +686,7 @@ export class YSTUProvider {
             '/WPROG/rasp/raspz_prep1.php',
             {
                 useCache: true,
+                onlyCache,
                 bypassCache,
                 method: 'POST',
                 postData,

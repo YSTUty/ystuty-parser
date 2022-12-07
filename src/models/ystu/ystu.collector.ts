@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import * as lodash from 'lodash';
+
 import * as xEnv from '@my-environment';
 import { ITeacherData, IAudienceData } from '@my-interfaces';
 import { delay } from '@my-common';
@@ -71,35 +73,49 @@ export class YSTUCollector {
                 if (!queueAudiences) {
                     continue;
                 }
-
-                const audiencesWithSchedule = await Promise.all(
-                    queueAudiences.map(async (audience) => ({
-                        ...audience,
-                        items:
-                            (await this.ystuProvider.getScheduleByAudience(
-                                audience.id,
-                            )) || [],
-                    })),
-                );
-
-                for (const { id, name, items } of audiencesWithSchedule) {
-                    const rec = this.accumulativeSchedule.find(
-                        (e) => e.id === id,
+                try {
+                    const audiencesWithSchedule = await Promise.all(
+                        queueAudiences.map(async (audience) => ({
+                            ...audience,
+                            items:
+                                (await this.ystuProvider.getScheduleByAudience(
+                                    audience.id,
+                                    false,
+                                    audience.onlyCahce,
+                                )) || (audience.onlyCahce ? null : []),
+                        })),
                     );
-                    const time = new Date().getTime();
-                    if (!rec) {
-                        this.accumulativeSchedule.push({
-                            id,
-                            name,
-                            items,
-                            time,
-                        });
-                        continue;
-                    }
 
-                    // Update items
-                    rec.time = time;
-                    rec.items = items;
+                    for (const { id, name, items } of audiencesWithSchedule) {
+                        const recId = this.accumulativeSchedule.findIndex(
+                            (e) => e.id === id,
+                        );
+                        const rec = this.accumulativeSchedule[recId];
+
+                        if (!items) {
+                            if (rec) {
+                                this.accumulativeSchedule.splice(recId, 1);
+                            }
+                            continue;
+                        }
+
+                        const time = Date.now();
+                        if (!rec) {
+                            this.accumulativeSchedule.push({
+                                id,
+                                name,
+                                items,
+                                time,
+                            });
+                            continue;
+                        }
+
+                        // Update items
+                        rec.time = time;
+                        rec.items = items;
+                    }
+                } catch (err) {
+                    this.logger.error(err);
                 }
             }
         } finally {
@@ -113,8 +129,9 @@ export class YSTUCollector {
                 arr.slice(i * size, i * size + size),
             );
 
-        let audiences: { id: number; name: string }[] = [];
+        let audiences: { id: number; name: string; onlyCahce?: true }[] = [];
         let audienceChunks: typeof audiences[] = [];
+        let isFirst = true;
         do {
             try {
                 if (audienceChunks.length === 0) {
@@ -128,21 +145,48 @@ export class YSTUCollector {
                         this.accumulativeSchedule.filter((e) =>
                             audienceIds.includes(e.id),
                         );
-                    audienceChunks = chunk(
-                        audiences,
-                        xEnv.YSTU_COLLECTOR_QUEUE_CHUNK,
-                    );
+
+                    // * First try to load the schedule from the cache
+                    if (isFirst) {
+                        const delim = 7;
+                        audienceChunks = [];
+                        for (const audienceIndex in audiences) {
+                            const part = Number(audienceIndex) % delim;
+                            const audience = lodash.cloneDeep(
+                                audiences[audienceIndex],
+                            );
+                            audience.onlyCahce = true;
+                            if (!audienceChunks[part]) {
+                                audienceChunks[part] = [];
+                            }
+                            audienceChunks[part].push(audience);
+                        }
+                    } else {
+                        audienceChunks = chunk(
+                            audiences,
+                            xEnv.YSTU_COLLECTOR_QUEUE_CHUNK,
+                        );
+                    }
                 }
 
                 //
                 const queueAudiences = audienceChunks.shift();
                 if (audienceChunks.length === 0) {
+                    isFirst = false;
+                    this.logger.log(
+                        `Loaded [${this.accumulativeSchedule.length}] audiences from cache`,
+                    );
                     await delay(xEnv.YSTU_COLLECTOR_DELAY_UPDATER * 1e3);
                 }
 
                 yield queueAudiences;
             } catch (err) {
                 this.logger.error(err);
+            }
+
+            if (isFirst) {
+                await delay(5 * 1e3);
+                continue;
             }
 
             while (this.ystuProvider.isRateLimited && Math.random() > 0.2) {
