@@ -21,6 +21,11 @@ const hasLogin1 = 'input type="submit" name="login1"'.toLowerCase();
 export class YSTUProvider {
     private readonly logger = new Logger(YSTUProvider.name);
 
+    public rateLimiter = {
+        attempts: 0,
+        time: null,
+    };
+
     private cookies: Record<string, any> = null;
     private authPayload = {
         login: xEnv.YSTU_USERNAME,
@@ -325,14 +330,19 @@ export class YSTUProvider {
                     (e) => err.message?.toLowerCase().includes(e.toLowerCase()),
                 )
             ) {
-                const cacheData = await getCacheData(true, true);
-                if (cacheData) {
-                    this.logger.warn(`Fetch: ${err.message}. Using cache...`);
+                this.incRateLimit();
+                if (!bypassCache) {
+                    const cacheData = await getCacheData(true, true);
+                    if (cacheData) {
+                        this.logger.warn(
+                            `Fetch: ${err.message}. Using cache...`,
+                        );
 
-                    return {
-                        error: { message: err.message },
-                        ...cacheData,
-                    };
+                        return {
+                            error: { message: err.message },
+                            ...cacheData,
+                        };
+                    }
                 }
             }
 
@@ -395,7 +405,35 @@ export class YSTUProvider {
         return !needAuth;
     }
 
-    //
+    // * Rate limiter
+
+    public get isRateLimited() {
+        const isCooldown =
+            this.rateLimiter.time &&
+            Date.now() - this.rateLimiter.time <
+                xEnv.YSTU_COLLECTOR_RATE_LIMIT_COOLDOWN * 1e3;
+        if (!isCooldown) {
+            this.rateLimiter.time = null;
+            return false;
+        }
+        return isCooldown;
+    }
+
+    public incRateLimit() {
+        ++this.rateLimiter.attempts;
+        if (this.rateLimiter.attempts >= xEnv.YSTU_COLLECTOR_RATE_LIMIT) {
+            this.rateLimiter.attempts = 0;
+            this.rateLimiter.time = Date.now();
+            this.logger.warn('Rate limit reached. Cooldown...');
+        }
+    }
+
+    public resetRateLimit() {
+        this.rateLimiter.attempts = 0;
+        this.rateLimiter.time = null;
+    }
+
+    // * RaspZ
 
     public async getRaspZLinks() {
         let linkToFullList: string = null;

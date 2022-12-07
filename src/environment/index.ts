@@ -108,13 +108,20 @@ export const CACHE_MANAGER_HTTP_FETCH_TTL: number =
     +process.env.CACHE_MANAGER_HTTP_FETCH_TTL || CACHE_MANAGER_TTL;
 
 // * Collector
+/** Max number of requests to YSTU server in one loop */
 export const YSTU_COLLECTOR_QUEUE_CHUNK: number =
     +process.env.YSTU_COLLECTOR_QUEUE_CHUNK || 3;
+/** Max attempts number of fail requests to YSTU server */
+export const YSTU_COLLECTOR_RATE_LIMIT: number =
+    +process.env.YSTU_COLLECTOR_RATE_LIMIT || 5;
+/** Cooldown time for requests to YSTU server (in seconds) */
+export const YSTU_COLLECTOR_RATE_LIMIT_COOLDOWN: number =
+    +process.env.YSTU_COLLECTOR_RATE_LIMIT_COOLDOWN || 60 * 10;
 
 // * Delays (in seconds)
 
 export const YSTU_COLLECTOR_DELAY_LOOP: number =
-    +process.env.YSTU_COLLECTOR_DELAY_LOOP || 5 * 60;
+    +process.env.YSTU_COLLECTOR_DELAY_LOOP || 30 * 60;
 
 export const YSTU_COLLECTOR_DELAY_UPDATER: number =
     +process.env.YSTU_COLLECTOR_DELAY_UPDATER || 5 * 60;

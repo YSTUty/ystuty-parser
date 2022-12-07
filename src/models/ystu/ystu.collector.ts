@@ -145,6 +145,9 @@ export class YSTUCollector {
                 this.logger.error(err);
             }
 
+            while (this.ystuProvider.isRateLimited && Math.random() > 0.2) {
+                await delay(xEnv.YSTU_COLLECTOR_DELAY_QUEUE * 1e3);
+            }
             await delay(xEnv.YSTU_COLLECTOR_DELAY_QUEUE * 1e3);
         } while (!this.aborted);
     }
