@@ -3,7 +3,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import * as Iconv from 'iconv-lite';
-import * as FormData from 'form-data';
+import { Readable } from 'stream';
+import { FormData } from 'formdata-node';
+import { FormDataEncoder } from 'form-data-encoder';
 
 import * as xEnv from '@my-environment';
 import { cacheManager, md5 } from '@my-common';
@@ -186,13 +188,18 @@ export class YSTUProvider {
             };
         }
 
+        const cloneConfig: Record<string, any> = {};
+
         if (method !== 'GET') {
             if (postData instanceof FormData) {
-                axiosConfig.headers = postData.getHeaders(axiosConfig.headers);
-                axiosConfig.data = postData.getBuffer();
+                const encoder = new FormDataEncoder(postData);
+                axiosConfig.headers['content-type'] = encoder.contentType;
+                axiosConfig.data = Readable.from(encoder.encode());
+                cloneConfig.data = Object.fromEntries([...postData.entries()]);
             } else {
                 const params = new URLSearchParams(postData);
                 axiosConfig.data = params.toString();
+                cloneConfig.data = axiosConfig.data;
             }
         }
 
@@ -215,6 +222,10 @@ export class YSTUProvider {
         axiosConfig.url = url;
         axiosConfig.method = method;
 
+        cloneConfig.params = /* JSON.stringify */ axiosConfig.params;
+        cloneConfig.url = axiosConfig.url;
+        cloneConfig.method = axiosConfig.method;
+
         // this.logger.debug(`[Fetch] (${method}) "${url}"`, {
         //     postData,
         //     useCache,
@@ -224,9 +235,6 @@ export class YSTUProvider {
         // });
 
         const getFilePath = () => {
-            const cloneConfig = JSON.parse(JSON.stringify(axiosConfig));
-            // * to bypass duplicate caches from different PHPSESSID
-            delete cloneConfig?.['headers'];
             const hash = md5(JSON.stringify(cloneConfig));
             const file = ['web', `${url}_${method}_${hash}`] as [
                 string,

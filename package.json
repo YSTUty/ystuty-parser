@@ -50,6 +50,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express-basic-auth": "^1.2.1",
+    "form-data-encoder": "^1",
+    "formdata-node": "^4",
     "fs-extra": "^10.0.0",
     "helmet": "^5.0.2",
     "ical-generator": "^3.4.0",
