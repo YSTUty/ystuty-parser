@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.16](https://github.com/YSTUty/ystuty-parser/compare/v0.0.15...v0.0.16) (2022-12-07)
+
+
+### 🧹 Chore
+
+* **cache:** returning cloned data on read ([2290466](https://github.com/YSTUty/ystuty-parser/commit/229046636f8d216eea6b8f5a48a600033e6c532a))
+* **docker:** move `build` to `production` layer ([dcff728](https://github.com/YSTUty/ystuty-parser/commit/dcff728386381c1b99620c5daac8eb3b47eee217))
+* **parser:** added normalizer for xids in schedule links ([0f7f082](https://github.com/YSTUty/ystuty-parser/commit/0f7f0825224ffdb11a861089cc1922cdb8cbd862))
+* **util:** updated calculating memory size ([74c5d10](https://github.com/YSTUty/ystuty-parser/commit/74c5d1047f9c2d8a21736f12169a32492ba91891))
+
+
+### 🐛 Bug Fixes
+
+* **parser:** checking `timeRange` to incorrect value ([e326b11](https://github.com/YSTUty/ystuty-parser/commit/e326b1111f255c90b322bc0f11f2f06469451951))
+* **provider:** fixed checking `timeout` error for try get cache data ([c00a2ee](https://github.com/YSTUty/ystuty-parser/commit/c00a2eea61c8776582538c7ba5aae1d3a109976a))
+* **provider:** fixed generating cache file path ([26e82ec](https://github.com/YSTUty/ystuty-parser/commit/26e82ecce782fd3773dd8e5dd6872c6d8fbfe112))
+* **provider:** fixed incorrect returning cache data ([43a0b08](https://github.com/YSTUty/ystuty-parser/commit/43a0b0867198f0aa1eedd505f8720a1a7e3b6667))
+* **provider:** not overwrite cached `links` by empty data ([24340f8](https://github.com/YSTUty/ystuty-parser/commit/24340f8896fcca63a0205c828eb0e0616861e12f))
+* **util:** fixed typos normalizer schedule links ([851400a](https://github.com/YSTUty/ystuty-parser/commit/851400a579749cd44af17c44f7ffa38353568f52))
+
+
+### 🚀 Features
+
+* **ystu:** added rate limiter for `provider` ([4136bea](https://github.com/YSTUty/ystuty-parser/commit/4136bea3ffdc84f4f8e5515ec057f52c87c5dbe8))
+* **ystu:** loading accumulative schedule from cache in `collector` ([dbd1719](https://github.com/YSTUty/ystuty-parser/commit/dbd1719825c55022783d88c640971319d57ee35c))
+
 ### [0.0.15](https://github.com/YSTUty/ystuty-parser/compare/v0.0.14...v0.0.15) (2022-12-02)
 
 
