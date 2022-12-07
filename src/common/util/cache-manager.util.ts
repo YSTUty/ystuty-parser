@@ -115,7 +115,7 @@ export class CacheManager {
 
         const name = this.genName(afile);
         if (!forceFile && this.cache[name]) {
-            return this.cache[name];
+            return lodash.cloneDeep(this.cache[name]);
         }
 
         const path = this.getPath(apath, afile);
@@ -130,7 +130,7 @@ export class CacheManager {
             if (!forceFile) {
                 this.cache[name] = data;
             }
-            return data;
+            return lodash.cloneDeep(data);
         } catch (err) {
             console.error(path, err);
             return null;
