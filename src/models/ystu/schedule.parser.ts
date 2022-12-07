@@ -534,12 +534,15 @@ export const parseTeacherDayCherrio = ((
         timeStr?.split(' '),
     );
 
+    const TIME_REGEXP = /[0-9]{1,2}:[0-9]{1,2}/;
+
     const durationMinutes = 90;
     const durationHours = ((d) => Math.round((d + 10) / 50))(durationMinutes);
-    const startAt = moment(
-        `${dateStr[0]} ${timeRange.split('-')[0]}`,
-        'DD.MM hh:mm',
-    )
+    const fixedTimeStart = (([e]) => (TIME_REGEXP.test(e) ? e : '00:00'))(
+        timeRange.split('-'),
+    );
+
+    const startAt = moment(`${dateStr[0]} ${fixedTimeStart}`, 'DD.MM hh:mm')
         .utc()
         .toDate();
     const endAt = new Date(
