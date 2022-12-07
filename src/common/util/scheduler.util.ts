@@ -27,7 +27,7 @@ export const normalizeScheduleLink = (link: string) => {
         ) {
             continue;
         }
-        const targetNum = value.slice(4, -4);
+        const targetNum = value.slice(3, -3);
         query.set(key, `xxx${targetNum}xxx`);
     }
     return [url, query.toString()].join('?');
