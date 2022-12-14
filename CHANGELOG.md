@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.17](https://github.com/YSTUty/ystuty-parser/compare/v0.0.16...v0.0.17) (2022-12-14)
+
+
+### 🐛 Bug Fixes
+
+* **readme:** fixed badges url ([21719e2](https://github.com/YSTUty/ystuty-parser/commit/21719e2c09bbc7fc7fb0dbc0ff25a644d5317d2a))
+
+
+### 🧹 Chore
+
+* **provider:** increased parsing date interval ([9cd4e0d](https://github.com/YSTUty/ystuty-parser/commit/9cd4e0d74c82619fa3bf7e45bf942e17b5e93d68))
+
+
+### 🚀 Features
+
+* **app:** added support proxy agent ([dd2b4c5](https://github.com/YSTUty/ystuty-parser/commit/dd2b4c51c26da19a53e2f47305336b4ce131e312))
+
 ### [0.0.16](https://github.com/YSTUty/ystuty-parser/compare/v0.0.15...v0.0.16) (2022-12-07)
 
 
