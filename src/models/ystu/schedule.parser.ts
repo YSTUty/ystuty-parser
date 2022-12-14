@@ -490,11 +490,13 @@ type ParseTeacherDayCherrio = {
     (
         $: cheerio.CheerioAPI,
         row: cheerio.Element,
-        byAudiences?: boolean,
+        datts: { datt0: string; datt1: string },
+        byAudiences: boolean | undefined,
     ): TeacherLesson;
     (
         $: cheerio.CheerioAPI,
         row: cheerio.Element,
+        datts: { datt0: string; datt1: string },
         byAudiences: true,
     ): AudienceLesson;
 };
@@ -502,6 +504,7 @@ type ParseTeacherDayCherrio = {
 export const parseTeacherDayCherrio = ((
     $: cheerio.CheerioAPI,
     row: cheerio.Element,
+    datts: { datt0: string; datt1: string },
     byAudiences = false,
 ) => {
     const $row = $(row);
@@ -542,7 +545,17 @@ export const parseTeacherDayCherrio = ((
         timeRange.split('-'),
     );
 
-    const startAt = moment(`${dateStr[0]} ${fixedTimeStart}`, 'DD.MM hh:mm')
+    const [[, minMonth, minYear], [, maxMonth]] = ((d) =>
+        d.map((e) => e.split('.').map(Number)))([datts.datt0, datts.datt1]);
+    const lessonMonth = Number(dateStr[0].split('.')[1]);
+
+    // * Исправление даты из-за отсутствия года в данных
+    // ! Не будет работать с интервалом больше года
+    const fixYear = minYear + (lessonMonth < minMonth ? 1 : 0);
+    const startAt = moment(
+        `${fixYear}.${dateStr[0]} ${fixedTimeStart}`,
+        'YYYY.DD.MM hh:mm',
+    )
         .utc()
         .toDate();
     const endAt = new Date(

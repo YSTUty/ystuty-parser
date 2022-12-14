@@ -651,8 +651,8 @@ export class YSTUProvider {
         bypassCache: boolean = false,
         onlyCache: true | null = null,
     ) {
-        const { datt0, datt1 } = this.getDatt();
-        const postData = { datt0, datt1, idprep: teacherId };
+        const datts = this.getDatt();
+        const postData = { ...datts, idprep: teacherId };
 
         const raspz_prep1Response = await this.fetch(
             '/WPROG/rasp/raspz_prep1.php',
@@ -670,7 +670,10 @@ export class YSTUProvider {
         }
 
         const html = raspz_prep1Response?.data;
-        const teacherSchedule = await cherrioParser.getTeacherSchedule(html);
+        const teacherSchedule = await cherrioParser.getTeacherSchedule(
+            html,
+            datts,
+        );
         return teacherSchedule;
     }
 
@@ -679,8 +682,8 @@ export class YSTUProvider {
         bypassCache: boolean = false,
         onlyCache: true | null = null,
     ) {
-        const { datt0, datt1 } = this.getDatt();
-        const postData = { datt0, datt1, idaudi: audienceId };
+        const datts = this.getDatt();
+        const postData = { ...datts, idaudi: audienceId };
 
         const raspz_prep1Response = await this.fetch(
             '/WPROG/rasp/raspz_prep1.php',
@@ -698,7 +701,10 @@ export class YSTUProvider {
         }
 
         const html = raspz_prep1Response?.data;
-        const audienceSchedule = await cherrioParser.getAudienceSchedule(html);
+        const audienceSchedule = await cherrioParser.getAudienceSchedule(
+            html,
+            datts,
+        );
         return audienceSchedule;
     }
 }

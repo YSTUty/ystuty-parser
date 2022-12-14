@@ -139,7 +139,10 @@ export const getTeachersScheduleFormData = async (html: string) => {
     return teachers;
 };
 
-export const getTeacherSchedule = async (html: string) => {
+export const getTeacherSchedule = async (
+    html: string,
+    datts: { datt0: string; datt1: string },
+) => {
     const $ = cheerio.load(html);
     // chTableParser($);
     // const data = ($('#tab1') as any).parsetable(
@@ -152,7 +155,7 @@ export const getTeacherSchedule = async (html: string) => {
     const rows = $('#tab1 > tbody > tr').toArray();
     const schedule: TeacherLesson[] = [];
     for (const row of rows) {
-        const day = scheduleParser.parseTeacherDayCherrio($, row);
+        const day = scheduleParser.parseTeacherDayCherrio($, row, datts, false);
         schedule.push(day);
     }
     return schedule;
@@ -176,13 +179,16 @@ export const getAudiencesScheduleFormData = async (html: string) => {
     return audiences;
 };
 
-export const getAudienceSchedule = async (html: string) => {
+export const getAudienceSchedule = async (
+    html: string,
+    datts: { datt0: string; datt1: string },
+) => {
     const $ = cheerio.load(html);
 
     const rows = $('#tab1 > tbody > tr').toArray();
     const schedule: AudienceLesson[] = [];
     for (const row of rows) {
-        const day = scheduleParser.parseTeacherDayCherrio($, row, true);
+        const day = scheduleParser.parseTeacherDayCherrio($, row, datts, true);
         schedule.push(day);
     }
     return schedule;
