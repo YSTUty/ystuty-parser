@@ -54,6 +54,7 @@
     "formdata-node": "^4",
     "fs-extra": "^10.0.0",
     "helmet": "^5.0.2",
+    "https-proxy-agent": "^5.0.1",
     "ical-generator": "^3.4.0",
     "iconv-lite": "^0.6.3",
     "lodash": "^4.17.21",
@@ -64,6 +65,7 @@
     "request-ip": "^2.1.3",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
+    "socks-proxy-agent": "^7.0.0",
     "standard-version": "^9.3.2",
     "swagger-stats": "^0.99.2"
   },

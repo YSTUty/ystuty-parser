@@ -131,3 +131,6 @@ export const YSTU_COLLECTOR_DELAY_QUEUE: number =
 
 export const APP_CACHE_CLEANER_DELAY: number =
     +process.env.APP_CACHE_CLEANER_DELAY || 2 * 60;
+
+// * Proxy
+export const PROXY_AGENT_URL: string = process.env.PROXY_AGENT_URL || null;
