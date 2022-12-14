@@ -584,7 +584,7 @@ export class YSTUProvider {
         const month = new Date().getMonth() + 1;
         return {
             datt0: month > 7 ? `01.08.${year}` : `01.02.${year}`,
-            datt1: month > 7 ? `01.02.${year + 1}` : `01.08.${year}`,
+            datt1: month > 7 ? `01.08.${year + 1}` : `01.02.${year + 1}`,
         };
     }
 
