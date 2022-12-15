@@ -459,97 +459,81 @@ export class YSTUProvider {
     // * RaspZ
 
     public async getRaspZLinks() {
-        let linkToFullList: string = null;
-        let linkToExtramural: string = null;
-        let linkToAdditionalLecture: string = null;
-
-        if (!xEnv.YSTU_RASPZ_ID && !xEnv.YSTU_RASPZ_ID_EXTRA) {
+        let allScheduleLinks: string[] = [];
+        if (xEnv.YSTU_RASPZ_ID_ALL.length === 0) {
             const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
                 useCache: true,
             });
 
-            [linkToFullList, linkToExtramural] = cherrioParser.getLink2FullList(
+            allScheduleLinks = cherrioParser.getScheduleLinks(
                 raspzResponse.data,
             );
         } else {
-            linkToFullList =
-                xEnv.YSTU_RASPZ_ID &&
-                `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID}xxx`;
-            linkToExtramural =
-                xEnv.YSTU_RASPZ_ID_EXTRA &&
-                `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID_EXTRA}xxx`;
+            allScheduleLinks = xEnv.YSTU_RASPZ_ID_ALL.map(
+                (e) => `/WPROG/rasp/raspz.php?IDraspz=xxx${e}xxx`,
+            );
         }
 
-        if (xEnv.YSTU_RASPZ_ID_LECTURE_ADDITIONAL) {
-            linkToAdditionalLecture = `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID_LECTURE_ADDITIONAL}xxx`;
+        let extraScheduleLink: string = null;
+        if (xEnv.YSTU_RASPZ_ID_EXTRA) {
+            extraScheduleLink = `/WPROG/rasp/raspz.php?IDraspz=xxx${xEnv.YSTU_RASPZ_ID_EXTRA}xxx`;
         }
 
-        const [
-            raspzListResponse,
-            raspzListExtramuralResponse,
-            raspzListAdditionalLectureResponse,
-        ] = await Promise.all([
-            linkToFullList &&
-                this.fetch(linkToFullList, {
-                    useCache: true,
-                    nullOnError: true,
-                }),
-            linkToExtramural &&
-                this.fetch(linkToExtramural, {
-                    useCache: true,
-                    nullOnError: true,
-                }),
-            linkToAdditionalLecture &&
-                this.fetch(linkToAdditionalLecture, {
-                    useCache: true,
-                    nullOnError: true,
-                }),
-        ]);
+        const [extraScheduleResponse, ...allScheduleResponses] =
+            await Promise.all([
+                extraScheduleLink &&
+                    this.fetch(extraScheduleLink, {
+                        useCache: true,
+                        nullOnError: true,
+                    }),
+                ...allScheduleLinks.map((e) =>
+                    this.fetch(e, {
+                        useCache: true,
+                        nullOnError: true,
+                    }),
+                ),
+            ]);
 
         const institutePath = ['links', 'instituteLinks'] as [string, string];
         let instituteLinks: InstituteLinkType[] = [];
-        if (raspzListResponse) {
-            const response = cherrioParser.getInstituteLinks(
-                raspzListResponse.data,
-            );
-            instituteLinks = response.links;
-            let scheduleName = response.name;
-            this.logger.log(
-                `Getting schedule for "instituteLinks": ${scheduleName}`,
-            );
+        if (allScheduleResponses.length > 0) {
+            for (const scheduleResponse of allScheduleResponses) {
+                const { name: scheduleName, links: instituteLinks2 } =
+                    cherrioParser.getInstituteLinks(scheduleResponse.data);
 
-            if (raspzListAdditionalLectureResponse) {
+                this.logger.log(
+                    `Getting schedule for "instituteLinks": [${scheduleName}] ...`,
+                );
+
                 try {
-                    const response = cherrioParser.getInstituteLinks(
-                        raspzListAdditionalLectureResponse.data,
-                    );
-                    const instituteLinks2 = response.links;
-                    let scheduleName = response.name;
-                    this.logger.log(
-                        `Getting additional lecture schedule for "instituteLinks": ${scheduleName}`,
-                    );
                     for (const institute2 of instituteLinks2) {
                         const institute = instituteLinks.find(
                             (e) => e.name === institute2.name,
                         );
+
                         if (institute) {
                             for (const group2 of institute2.groups) {
                                 const group = institute.groups.find(
-                                    (e) => e.name === group2.name,
+                                    (group1) =>
+                                        group1.name.toLowerCase() ===
+                                        group2.name.toLowerCase(),
                                 );
                                 if (group) {
-                                    group.linksLecture.push(group2.link);
+                                    group.extraLinks.push(group2.link);
                                 }
                             }
+                        } else {
+                            instituteLinks.push(institute2);
                         }
                     }
                 } catch (err) {
                     this.logger.warn(
-                        'Error on getting additional lecture schedule',
+                        `Error on getting schedule ${scheduleName}`,
                     );
                     this.logger.error(err);
                 }
             }
+
             if (instituteLinks.length > 0) {
                 await cacheManager.update(institutePath, instituteLinks, -1);
             }
@@ -557,25 +541,35 @@ export class YSTUProvider {
             instituteLinks = await cacheManager.readData(institutePath);
         }
 
-        const extramuralPath = ['links', 'extramuralLinks'] as [string, string];
-        let extramuralLinks: InstituteLinkType[] = [];
-        if (raspzListExtramuralResponse) {
+        const extraSchedulePath = ['links', 'extraScheduleDataLinks'] as [
+            string,
+            string,
+        ];
+        let extraScheduleDataLinks: InstituteLinkType[] = [];
+        if (extraScheduleResponse) {
             const response = cherrioParser.getInstituteLinks(
-                raspzListExtramuralResponse.data,
+                extraScheduleResponse.data,
             );
-            extramuralLinks = response.links;
+            extraScheduleDataLinks = response.links;
             let scheduleName = response.name;
             this.logger.log(
-                `Getting schedule for "extramuralLinks": ${scheduleName}`,
+                `Getting schedule for "extraScheduleDataLinks": ${scheduleName}`,
             );
-            if (extramuralLinks.length > 0) {
-                await cacheManager.update(extramuralPath, extramuralLinks, -1);
+
+            if (extraScheduleDataLinks.length > 0) {
+                await cacheManager.update(
+                    extraSchedulePath,
+                    extraScheduleDataLinks,
+                    -1,
+                );
             }
-        } else {
-            extramuralLinks = await cacheManager.readData(extramuralPath);
+        } else if (extraScheduleLink) {
+            extraScheduleDataLinks = await cacheManager.readData(
+                extraSchedulePath,
+            );
         }
 
-        return [instituteLinks, extramuralLinks] as const;
+        return [instituteLinks, extraScheduleDataLinks] as const;
     }
 
     public getDatt() {

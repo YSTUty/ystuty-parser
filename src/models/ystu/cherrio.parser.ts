@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import * as chTableParser from 'cheerio-tableparser';
-import { IAudienceData, ITeacherData } from '@my-interfaces';
+import { IAudienceData, IInstituteData, ITeacherData } from '@my-interfaces';
 import { normalizeScheduleLink } from '@my-common';
 
 import * as scheduleParser from './schedule.parser';
@@ -11,7 +11,7 @@ import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const getName = (html: string) => {
     const $ = cheerio.load(html);
-    const nameString = $('.ContentHeader ul lir:nth-child(3)').text();
+    const nameString = $('.ContentHeader ul lir:nth-child(3)').text().trim();
     const matchResult = nameString.match(
         /(?<name>.+) \((?<login>[a-z0-9\._\-]{1,40})\)( (?<group>[а-я0-9\-]{1,10}))?/i,
     );
@@ -20,27 +20,17 @@ export const getName = (html: string) => {
     return name ? { name, login, group } : { name: nameString };
 };
 
-export const getLink2FullList = (html: string) => {
+export const getScheduleLinks = (html: string) => {
     const $ = cheerio.load(html);
-    const getLink = (index = 1) =>
-        ((e) => e && `/WPROG/rasp/${e}`)(
-            $(
-                `#tab1 > tbody > tr:nth-child(${index}) > td:nth-child(1) > a`,
-            ).attr('href'),
-        );
-    return [getLink(), getLink(2)] as const;
+    const links = $(`#tab1 > tbody > tr > td:nth-child(1) > a`)
+        .toArray()
+        .map((e) => $(e).attr('href'));
+    return links.map((link) => normalizeScheduleLink(`/WPROG/rasp/${link}`));
 };
 
 export const getInstituteLinks = (html: string) => {
     const $ = cheerio.load(html);
-    const instituteLinks: {
-        name: string;
-        groups: {
-            name: string;
-            link: string;
-            linksLecture: string[];
-        }[];
-    }[] = [];
+    const instituteLinks: IInstituteData[] = [];
 
     const trSelector =
         'body > div.WidthLimiter > div.Content > div.RightContentColumn > div > div > div.hidetext > table > tbody > tr';
@@ -48,7 +38,7 @@ export const getInstituteLinks = (html: string) => {
     const nbInstitutes = $(trSelector).length;
     if (nbInstitutes % 2 === 0) {
         for (let i = 1; i < nbInstitutes; i += 2) {
-            const name = $(`${trSelector}:nth-child(${i})`).text();
+            const name = $(`${trSelector}:nth-child(${i})`).text().trim();
             const contentHTML = $(
                 `${trSelector}:nth-child(${i + 1}) > td:nth-child(2) > a`,
             );
@@ -57,33 +47,39 @@ export const getInstituteLinks = (html: string) => {
             );
 
             const lectureLinks = contentLectureHTML.toArray().map((el) => ({
-                name: $(el).text(),
+                name: $(el).text().trim(),
                 link: normalizeScheduleLink(
                     `/WPROG/rasp/${$(el).attr('href')}`,
                 ),
             }));
 
             const groups = contentHTML.toArray().map((el) => {
-                const name = $(el).text();
+                const name = $(el).text().trim();
                 const linkLecture = (
                     lectureLinks.find((e) => e.name.slice(0, -3) === name) || {}
                 ).link;
                 return {
-                    name,
+                    // * Пропускаем ненужные обозначения в скобках, например, `ДСЭ-46(лс)` => `ДСЭ-46`
+                    name: name.trim().split('(')[0].trim(),
                     link: normalizeScheduleLink(
                         '/WPROG/rasp/' + $(el).attr('href'),
                     ),
-                    linksLecture: linkLecture ? [linkLecture] : [],
+                    extraLinks: linkLecture ? [linkLecture] : [],
                 };
             });
 
-            instituteLinks.push({ name, groups });
+            instituteLinks.push({
+                name,
+                groups,
+            });
         }
     }
 
     const name = $(
         'body > div.WidthLimiter > div.Content > div.RightContentColumn > div > div > div.hidetext > font',
-    ).text();
+    )
+        .text()
+        .trim();
 
     return { name, links: instituteLinks };
 };
@@ -102,6 +98,7 @@ export const getSchedule = async (html: string, short = false) => {
             .parent()
             .find('center')
             .text()
+            .trim()
             ?.split(' ');
         const data = ($(table) as any).parsetable(
             false,
@@ -128,10 +125,10 @@ export const getTeachersScheduleFormData = async (html: string) => {
     const teachers: ITeacherData[] = [];
     for (const row of rows) {
         const $row = $(row);
-        const days = $row.find('td:nth-child(4)').text().split(' ');
+        const days = $row.find('td:nth-child(4)').text().trim().split(' ');
 
         const $form = $row.find('td:nth-child(2) > form');
-        const name = $form.find('a').text();
+        const name = $form.find('a').text().trim();
         const idprep = Number($form.find('input[name="idprep"]').val()) || null;
 
         teachers.push({ id: idprep, name, days });
@@ -168,10 +165,10 @@ export const getAudiencesScheduleFormData = async (html: string) => {
     const audiences: IAudienceData[] = [];
     for (const row of rows) {
         const $row = $(row);
-        const days = $row.find('td:nth-child(4)').text().split(' ');
+        const days = $row.find('td:nth-child(4)').text().trim().split(' ');
 
         const $form = $row.find('td:nth-child(2) > form');
-        const name = $form.find('a').text();
+        const name = $form.find('a').text().trim();
         const id = Number($form.find('input[name="idaudi"]').val()) || null;
 
         audiences.push({ id, name, days });

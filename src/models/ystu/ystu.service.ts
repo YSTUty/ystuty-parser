@@ -93,13 +93,7 @@ export class YSTUService implements OnModuleInit {
     public getGroups(
         onlyNames: false,
         withExams?: boolean,
-    ): Promise<
-        {
-            link: string;
-            linksLecture?: string[];
-            name: string;
-        }[]
-    >;
+    ): Promise<IInstituteData['groups']>;
     public async getGroups(onlyNames = true, withExtramural = false) {
         if (!this.isLoaded) {
             throw new BadRequestException('wait for app initialization');
@@ -189,28 +183,36 @@ export class YSTUService implements OnModuleInit {
         );
 
         const scheduleLectureData: (OneWeek | MixedDay)[] = [];
-        if (groupInfo.linksLecture?.length > 0) {
-            for (const link of groupInfo.linksLecture) {
-                const scheduleLectureResponse = await this.ystuProvider.fetch(
-                    link,
-                    {
-                        useCache: true,
-                        bypassCache: true,
-                        nullOnError: true,
-                    },
-                );
-                if (scheduleLectureResponse) {
-                    scheduleLectureData.push(
-                        ...(await cherrioParser.getSchedule(
-                            scheduleLectureResponse.data,
-                            short,
-                        )),
-                    );
-                }
-            }
+        if (groupInfo.extraLinks.length > 0) {
+            scheduleLectureData.push(
+                ...((
+                    await Promise.all(
+                        groupInfo.extraLinks.map((link) =>
+                            this.ystuProvider
+                                .fetch(link, {
+                                    useCache: true,
+                                    bypassCache: true,
+                                    nullOnError: true,
+                                })
+                                .then(
+                                    (e) =>
+                                        e &&
+                                        cherrioParser.getSchedule(
+                                            e.data,
+                                            short,
+                                        ),
+                                ),
+                        ),
+                    )
+                )
+                    .filter(Boolean)
+                    .flat(1) as (OneWeek | MixedDay)[]),
+            );
         }
 
+        // TODO: sort by date
         const items = [...scheduleLectureData, ...scheduleData];
+
         // cache 1 day
         await cacheManager.update(file, items, 60 * 60 * 24);
 

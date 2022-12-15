@@ -25,9 +25,9 @@ export interface IGroupData {
      */
     link: string;
     /**
-     * Ссылки на расписание лекционной недели группы
+     * Дополнительные ссылки
      */
-    linksLecture?: string[];
+    extraLinks: string[];
 }
 
 /**
@@ -69,14 +69,7 @@ export enum WeekNumberType {
     Sunday = 6,
 }
 
-export type InstituteLinkType = {
-    name: string;
-    groups: {
-        name: string;
-        link: string;
-        linksLecture: string[];
-    }[];
-};
+export type InstituteLinkType = IInstituteData;
 
 export interface ITeacherData {
     id: number;

@@ -29,9 +29,10 @@ export const YSTU_DISABLE_USERINFO: boolean =
     process.env.YSTU_DISABLE_USERINFO === 'true';
 
 // ? What will happen after the overflow of 9999?
-export const YSTU_RASPZ_ID: number = +process.env.YSTU_RASPZ_ID || null;
-export const YSTU_RASPZ_ID_LECTURE_ADDITIONAL: number =
-    +process.env.YSTU_RASPZ_ID_LECTURE_ADDITIONAL || null;
+export const YSTU_RASPZ_ID_ALL: number[] = (process.env.YSTU_RASPZ_ID_ALL || '')
+    .split(',')
+    .map((e) => Number(e))
+    .filter(Boolean);
 export const YSTU_RASPZ_ID_EXTRA: number =
     +process.env.YSTU_RASPZ_ID_EXTRA || null;
 
