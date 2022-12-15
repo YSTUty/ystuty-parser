@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.18](https://github.com/YSTUty/ystuty-parser/compare/v0.0.17...v0.0.18) (2022-12-15)
+
+
+### 🐛 Bug Fixes
+
+* **parser:** fixed incorrect schedule date calculating (year) ([06f902f](https://github.com/YSTUty/ystuty-parser/commit/06f902f0a014e42329768d758ef5ce010f5936d1))
+
+
+### 🌟 Feature Improvements
+
+* **ystu:** updated groups schedule parsing ([ac3810d](https://github.com/YSTUty/ystuty-parser/commit/ac3810dd19b10b838ad4ed534b745c22448aff74))
+
 ### [0.0.17](https://github.com/YSTUty/ystuty-parser/compare/v0.0.16...v0.0.17) (2022-12-14)
 
 
