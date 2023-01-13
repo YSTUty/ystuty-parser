@@ -138,7 +138,10 @@ export class YSTUService implements OnModuleInit {
         short = false,
         forceCache = false,
     ) {
-        const file: [string, string] = ['schedule', name.toLowerCase()];
+        const file: [string, string] = [
+            'schedule',
+            `${name.toLowerCase()}-s_${short}`,
+        ];
         const remainedTime = await cacheManager.checkTimeout(file, true);
 
         if (
