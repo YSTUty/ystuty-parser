@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.19](https://github.com/YSTUty/ystuty-parser/compare/v0.0.18...v0.0.19) (2023-01-13)
+
+
+### 🐛 Bug Fixes
+
+* add `short` param to schedule cache path ([edd581d](https://github.com/YSTUty/ystuty-parser/commit/edd581db39fc7186361feab87a85ada23d38fdf3))
+* **parser:** correct year for schedule date in semester after new year ([91c0dfc](https://github.com/YSTUty/ystuty-parser/commit/91c0dfc294302d12fd18ede52eeca7b00b483572))
+
 ### [0.0.18](https://github.com/YSTUty/ystuty-parser/compare/v0.0.17...v0.0.18) (2022-12-15)
 
 
