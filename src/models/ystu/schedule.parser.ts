@@ -238,11 +238,13 @@ export const parseWeekDay = (
         lessons: [],
     };
 
+    // * Если у таблицы нет столбца с неделями, то дата указана в названии таблицы
     // if without 'weeks' column
     if (titles.length === 5) {
         if (lessonDateStr) {
-            const [d, month, year] = lessonDateStr.split('.').map(Number);
-            day.info.date = new Date(Date.UTC(year, month - 1, d));
+            // * Set date by table name
+            const [dateDay, month, year] = lessonDateStr.split('.').map(Number);
+            day.info.date = new Date(Date.UTC(year, month - 1, dateDay));
             day.info.dateStr = lessonDateStr;
         }
 
@@ -312,6 +314,7 @@ export const splitLessonsDayByWeekNumber = (
         day.lessons = lessons;
         day.info = {
             ...day.info,
+            // * Set fake date
             date: new Date(),
             parity:
                 weekNumber % 2 === 0 ? WeekParityType.EVEN : WeekParityType.ODD,
@@ -365,10 +368,20 @@ const setDaysDate = (
     allDays: OneDay[],
     weekNumber: number,
     offsetWeek: number = 0,
-) =>
-    allDays.forEach(({ info, lessons }) => {
+    semStartWeekDate: Date = getStartDateOfSemester(),
+) => {
+    for (const { info, lessons } of allDays) {
         if (/* !info.dateStr &&  */ weekNumber !== null) {
-            info.date = getDateByWeek(weekNumber + offsetWeek, info.type);
+            info.date = getDateByWeek(
+                weekNumber + offsetWeek,
+                info.type,
+                semStartWeekDate.getFullYear(),
+            );
+            // * Fix year after new year in autumn semester
+            if (semStartWeekDate.getMonth() < 9 && info.date.getMonth() < 8) {
+                info.date = getDateByWeek(weekNumber + offsetWeek, info.type);
+            }
+
             info.dateStr = `${info.date
                 .getDate()
                 .toString()
@@ -377,7 +390,7 @@ const setDaysDate = (
                 .padStart(2, '0')}.${info.date.getFullYear()}`;
         }
 
-        lessons.forEach((lesson) => {
+        for (const lesson of lessons) {
             const [hours, minutes] = lesson.time.split('-')[0].split(':');
             lesson.startAt = createDateAsUTC(
                 info.date,
@@ -387,16 +400,8 @@ const setDaysDate = (
             lesson.endAt = new Date(
                 lesson.startAt.getTime() + lesson.durationMinutes * 60e3,
             ).toISOString();
-        });
-    });
-
-const getWeekNumber = (date: string | number | Date) => {
-    const now = new Date(date);
-    const onejan = new Date(now.getFullYear(), 0, 1);
-    return Math.ceil(
-        ((now.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) /
-            7,
-    );
+        }
+    }
 };
 
 const dateSkipWeek = (skipWeeks: number, _date: Date = new Date()) => {
@@ -425,6 +430,9 @@ const getStartDateOfSemester = (d = new Date()) => {
         (date.getMonth() > 7 ? 9 : 2) - 1,
         1,
     );
+
+    // TODO: rewrite to moment
+
     const firstWeekday = semDate.getDay() || 7;
     if (firstWeekday > 5) {
         semDate.setHours(24 * (8 - firstWeekday));
@@ -435,10 +443,10 @@ const getStartDateOfSemester = (d = new Date()) => {
 
 export const splitToWeeks = (
     allDays: MixedDay[],
-    semesterStartDate?: Date | string | number,
+    semStartWeekDate: Date = getStartDateOfSemester(),
 ) => {
-    const offsetWeek =
-        getWeekNumber(semesterStartDate ?? getStartDateOfSemester()) - 1;
+    const semStartWeekMoment = moment(semStartWeekDate);
+    const offsetWeek = semStartWeekMoment.week() - 1;
 
     if (allDays.some((day) => day.info.dateStr)) {
         const weeks: OneWeek[] = [];
@@ -460,15 +468,17 @@ export const splitToWeeks = (
                 splitWeekDays[week] = [];
             }
             lastWeekType = day.info.type;
-            day.info.weekNumber = getWeekNumber(day.info.date) - offsetWeek;
+            day.info.weekNumber =
+                moment(day.info.date).diff(semStartWeekMoment, 'weeks') + 1;
+
             splitWeekDays[week].push(day);
         }
 
         for (const days of splitWeekDays) {
-            setDaysDate(days, null);
-
+            setDaysDate(days, null, null, semStartWeekDate);
             weeks.push({ number: days[0].info.weekNumber, days });
         }
+
         return weeks;
     }
 
@@ -478,8 +488,7 @@ export const splitToWeeks = (
 
     for (let number = minWeek; number < maxWeek + 1; ++number) {
         const days = splitLessonsDayByWeekNumber(allDays, number);
-        setDaysDate(days, number, offsetWeek);
-
+        setDaysDate(days, number, offsetWeek, semStartWeekDate);
         weeks.push({ number, days });
     }
 

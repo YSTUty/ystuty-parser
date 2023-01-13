@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import * as chTableParser from 'cheerio-tableparser';
+import * as moment from 'moment';
 import { IAudienceData, IInstituteData, ITeacherData } from '@my-interfaces';
 import { normalizeScheduleLink } from '@my-common';
 
@@ -88,8 +89,27 @@ export const getSchedule = async (html: string, short = false) => {
     const $ = cheerio.load(html);
     chTableParser($);
 
-    const weekerStr = $('#nned option:eq(0)').val() as string;
-    const [, semesterStartDate] = weekerStr?.split(' - ') || [];
+    /** Первый день первой недели семестра */
+    let semStartWeekDate: Date = null;
+
+    const weekerArr = $('#nned option')
+        .toArray()
+        .map((e) => {
+            const [semestrNumber, startDateStr] = ((a: string | string[]) =>
+                Array.isArray(a) ? a[0] : a)($(e).val())
+                .trim()
+                .split(' - ');
+            return {
+                semestrNumber: Number(semestrNumber),
+                startDate: moment(startDateStr).weekday(1).toDate(),
+            };
+        });
+    if (weekerArr.length > 0) {
+        const { startDate } = weekerArr[0];
+        semStartWeekDate = startDate;
+    }
+
+    // TODO: use `weekerArr`
 
     const days: MixedDay[] = [];
     const tables = $('table.sortm').toArray();
@@ -115,7 +135,7 @@ export const getSchedule = async (html: string, short = false) => {
         days.push(day);
     }
 
-    return short ? days : scheduleParser.splitToWeeks(days, semesterStartDate);
+    return short ? days : scheduleParser.splitToWeeks(days, semStartWeekDate);
 };
 
 export const getTeachersScheduleFormData = async (html: string) => {
