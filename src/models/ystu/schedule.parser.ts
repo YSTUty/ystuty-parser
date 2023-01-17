@@ -423,11 +423,11 @@ const dateSkipWeek = (skipWeeks: number, _date: Date = new Date()) => {
     return date;
 };
 
-const getStartDateOfSemester = (d = new Date()) => {
-    const date = new Date(d);
+const getStartDateOfSemester = () => {
+    const now = new Date();
     const semDate = new Date(
-        date.getFullYear(),
-        (date.getMonth() > 7 ? 9 : 2) - 1,
+        now.getFullYear() - (now.getMonth() < 2 ? 1 : 0),
+        (now.getMonth() < 2 || now.getMonth() > 7 ? 9 : 2) - 1,
         1,
     );
 
