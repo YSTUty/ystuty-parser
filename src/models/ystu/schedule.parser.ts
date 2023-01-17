@@ -8,6 +8,7 @@ import { OneDay } from './entity/one-day.entity';
 import { OneWeek } from './entity/one-week.entity';
 import { AudienceLesson } from './entity/audience-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
+import { ExamDay } from './entity/exam-day.entity';
 
 export const parseRange = (str: string) => {
     return JSON.parse(
@@ -663,4 +664,95 @@ export const parseTeacherDays = (data: string[][]) => {
     // TODO: add merging of duplicate lessons
 
     return schedule;
+};
+
+export const injectExams = (
+    schedule: (OneWeek | MixedDay)[],
+    exams: {
+        exam: ExamDay;
+        teacherId: number;
+        teacherName: string;
+    }[],
+    short: boolean,
+) => {
+    for (const { teacherName, exam } of exams) {
+        let targetDay: OneDay | MixedDay = null;
+
+        if (short) {
+            targetDay = (schedule as MixedDay[]).find((day) =>
+                day.lessons.some((e) =>
+                    moment(e.startAt).isSame(exam.date, 'day'),
+                ),
+            );
+        } else {
+            let isFound = false;
+            for (const { days } of schedule as OneWeek[]) {
+                if (isFound) break;
+                for (const day of days) {
+                    if (
+                        day.lessons.some((e) =>
+                            moment(e.startAt).isSame(exam.date, 'day'),
+                        )
+                    ) {
+                        targetDay = day;
+                        isFound = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        const lessonFormat: Lesson = {
+            startAt: exam.date,
+            endAt: moment(exam.date).add(1, 'day').toDate(),
+
+            number: null,
+            time: null,
+            parity: null,
+            range: null,
+            rangeDist: null,
+
+            lessonName: exam.lessonName,
+            type: LessonFlags.Exam,
+
+            originalTimeTitle: null,
+            isStream: false,
+            duration: null,
+            durationMinutes: null,
+            isDivision: false,
+            auditoryName: exam.auditoryName,
+            teacherName,
+        };
+
+        if (targetDay) {
+            targetDay.lessons.push(lessonFormat);
+            continue;
+        }
+
+        const oneDayExam: OneDay = {
+            info: { name: null },
+            lessons: [lessonFormat],
+        };
+
+        if (!short) {
+            const semStartWeekMoment = moment(getStartDateOfSemester());
+            const weekNumber =
+                moment(lessonFormat.startAt).diff(semStartWeekMoment, 'weeks') +
+                1;
+            const newWeek = {
+                number: weekNumber,
+                days: [oneDayExam],
+            };
+            const weekIndex = (schedule as OneWeek[]).findIndex(
+                (e) => e.number === weekNumber,
+            );
+            if (weekIndex === -1) {
+                (schedule as OneWeek[]).push(newWeek);
+            } else {
+                (schedule[weekIndex] as OneWeek).days.push(oneDayExam);
+            }
+        } else {
+            (schedule as MixedDay[]).push(oneDayExam);
+        }
+    }
 };

@@ -7,6 +7,7 @@ import { delay } from '@my-common';
 
 import { YSTUProvider } from './ystu.provider';
 import { AccumulativeSchedule } from './entity/accumulative-schedule.entity';
+import { ExamDay } from './entity/exam-day.entity';
 
 @Injectable()
 export class YSTUCollector {
@@ -16,6 +17,12 @@ export class YSTUCollector {
     public teachersData: ITeacherData[] = [];
     public audiencesData: IAudienceData[] = [];
     public accumulativeSchedule: AccumulativeSchedule[] = [];
+
+    public teachersListByExams: Omit<ITeacherData, 'days'>[] = [];
+    public examsSchedule: {
+        teacherId: number;
+        exams: ExamDay[];
+    }[] = [];
 
     constructor(private readonly ystuProvider: YSTUProvider) {}
 
@@ -51,6 +58,20 @@ export class YSTUCollector {
             }
 
             try {
+                const teachersList =
+                    await this.ystuProvider.getTeachersListByExams(false);
+                if (!teachersList || teachersList.length === 0) {
+                    throw new Error('Empty array for teachers by exams');
+                }
+                this.teachersListByExams = teachersList;
+                this.logger.log(
+                    `Teachers by exams: ${this.teachersListByExams.length}`,
+                );
+            } catch (err) {
+                this.logger.error(err);
+            }
+
+            try {
                 const audiencesData = await this.ystuProvider.getAudiences(
                     false,
                 );
@@ -64,7 +85,49 @@ export class YSTUCollector {
 
             setImmediate(loop);
         };
+
+        const loopExamsCollector = async (first = false) => {
+            if (!first) {
+                await delay(
+                    /* xEnv.YSTU_COLLECTOR_DELAY_LOOP */ 12 * 3600 * 1e3,
+                );
+            }
+
+            try {
+                for (const { id: teacherId } of this.teachersListByExams) {
+                    const { list: exams, isCache } =
+                        await this.ystuProvider.getExamsByTeacher(teacherId);
+
+                    const recIdx = this.examsSchedule.findIndex(
+                        (e) => e.teacherId === teacherId,
+                    );
+                    const rec = this.examsSchedule[recIdx];
+                    if (!exams || exams.length === 0) {
+                        if (rec) {
+                            this.examsSchedule.splice(recIdx, 1);
+                        }
+                        continue;
+                    }
+
+                    if (!rec) {
+                        this.examsSchedule.push({ teacherId, exams });
+                    } else {
+                        rec.exams = lodash.cloneDeep(exams);
+                    }
+
+                    if (!isCache) {
+                        await delay(1 * 1e3);
+                    }
+                }
+            } catch (err) {
+                this.logger.error(err);
+            }
+
+            setImmediate(loop);
+        };
+
         await loop(true);
+        loopExamsCollector(true).then();
     }
 
     private async startUpdater() {
@@ -260,6 +323,35 @@ export class YSTUCollector {
             return null;
         }
         return { audience: { id: audience.id, name: audience.name }, items };
+    }
+
+    public async getExamsSchedule(groupName: string) {
+        const groupNameLower = groupName.toLowerCase();
+
+        const schedule: {
+            exam: ExamDay;
+            teacherId: number;
+            teacherName: string;
+        }[] = [];
+
+        for (const { teacherId, exams } of this.examsSchedule) {
+            for (const exam of exams) {
+                if (
+                    exam.groups.some((g) => g.toLowerCase() === groupNameLower)
+                ) {
+                    const teacher = this.teachersData.find(
+                        (e) => e.id === teacherId,
+                    );
+                    schedule.push({
+                        exam,
+                        teacherId,
+                        teacherName: teacher.name,
+                    });
+                }
+            }
+        }
+
+        return schedule;
     }
 
     public async getAccumulative() {

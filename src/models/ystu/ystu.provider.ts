@@ -6,12 +6,14 @@ import * as Iconv from 'iconv-lite';
 import { Readable } from 'stream';
 import { FormData } from 'formdata-node';
 import { FormDataEncoder } from 'form-data-encoder';
+import * as moment from 'moment';
 
 import * as xEnv from '@my-environment';
 import { cacheManager, md5 } from '@my-common';
-import { InstituteLinkType } from '@my-interfaces';
+import { InstituteLinkType, LessonFlags } from '@my-interfaces';
 
 import * as cherrioParser from './cherrio.parser';
+import { TeacherLesson } from './entity/teacher-lesson.entity';
 
 export const COOKIES_FILE = 'cookies';
 
@@ -617,6 +619,25 @@ export class YSTUProvider {
         return teachersData;
     }
 
+    public async getTeachersListByExams(bypassCache: boolean = false) {
+        const listResponse = await this.fetch(
+            '/WPROG/list_rasp.php?kaf=0&defprep=0',
+            {
+                useCache: true,
+                bypassCache,
+                nullOnError: true,
+            },
+        );
+        if (!listResponse) {
+            return null;
+        }
+
+        const html = listResponse?.data;
+        const teachersList = await cherrioParser.getTeachersListByExams(html);
+
+        return teachersList;
+    }
+
     public async getAudiences(bypassCache: boolean = false) {
         const { datt0, datt1 } = this.getDatt();
         const postData = new FormData();
@@ -669,12 +690,61 @@ export class YSTUProvider {
             return null;
         }
 
+        const { list: teacherScheduleExams } = await this.getExamsByTeacher(
+            teacherId,
+            bypassCache,
+            onlyCache,
+        );
+
         const html = raspz_prep1Response?.data;
         const teacherSchedule = await cherrioParser.getTeacherSchedule(
             html,
             datts,
         );
-        return teacherSchedule;
+        return [
+            ...teacherSchedule,
+            ...(teacherScheduleExams || []).map(
+                ({ date, ...rest }) =>
+                    ({
+                        ...rest,
+                        lessonType: LessonFlags.Exam,
+
+                        startAt: date,
+                        endAt: moment(date).add(1, 'day').toDate(),
+
+                        weekNumber: null,
+                        number: null,
+                        timeRange: null,
+                        duration: null,
+                    } as TeacherLesson),
+            ),
+        ];
+    }
+
+    public async getExamsByTeacher(
+        teacherId: number,
+        bypassCache: boolean = false,
+        onlyCache: true | null = null,
+    ) {
+        const postData = { sprep: teacherId };
+
+        const list_rasp1Response = await this.fetch('/WPROG/list_rasp1.php', {
+            useCache: true,
+            onlyCache,
+            bypassCache,
+            method: 'POST',
+            postData,
+            nullOnError: true,
+        });
+
+        const html = list_rasp1Response?.data;
+        const teacherScheduleExams =
+            await cherrioParser.getTeacherScheduleExams(html, teacherId);
+
+        return {
+            isCache: list_rasp1Response.isCache,
+            list: teacherScheduleExams,
+        };
     }
 
     public async getScheduleByAudience(

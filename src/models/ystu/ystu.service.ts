@@ -12,6 +12,7 @@ import { cacheManager, delay } from '@my-common';
 import { YSTUProvider } from './ystu.provider';
 import { YSTUCollector } from './ystu.collector';
 import * as cherrioParser from './cherrio.parser';
+import * as scheduleParser from './schedule.parser';
 
 import { OneWeek } from './entity/one-week.entity';
 import { MixedDay } from './entity/mixed-day.entity';
@@ -215,6 +216,11 @@ export class YSTUService implements OnModuleInit {
 
         // TODO: sort by date
         const items = [...scheduleLectureData, ...scheduleData];
+
+        const exams = await this.ystuCollector.getExamsSchedule(name);
+        if (exams.length > 0) {
+            scheduleParser.injectExams(items, exams, short);
+        }
 
         // cache 1 day
         await cacheManager.update(file, items, 60 * 60 * 24);

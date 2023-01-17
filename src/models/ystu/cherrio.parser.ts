@@ -1,7 +1,12 @@
 import * as cheerio from 'cheerio';
 import * as chTableParser from 'cheerio-tableparser';
 import * as moment from 'moment';
-import { IAudienceData, IInstituteData, ITeacherData } from '@my-interfaces';
+import {
+    IAudienceData,
+    IInstituteData,
+    ITeacherData,
+    LessonFlags,
+} from '@my-interfaces';
 import { normalizeScheduleLink } from '@my-common';
 
 import * as scheduleParser from './schedule.parser';
@@ -9,6 +14,7 @@ import * as scheduleParser from './schedule.parser';
 import { MixedDay } from './entity/mixed-day.entity';
 import { AudienceLesson } from './entity/audience-lesson.entity';
 import { TeacherLesson } from './entity/teacher-lesson.entity';
+import { ExamDay } from './entity/exam-day.entity';
 
 export const getName = (html: string) => {
     const $ = cheerio.load(html);
@@ -101,7 +107,7 @@ export const getSchedule = async (html: string, short = false) => {
                 .split(' - ');
             return {
                 semestrNumber: Number(semestrNumber),
-                startDate: moment(startDateStr).weekday(1).toDate(),
+                startDate: moment(new Date(startDateStr)).weekday(1).toDate(),
             };
         });
     if (weekerArr.length > 0) {
@@ -176,6 +182,59 @@ export const getTeacherSchedule = async (
         schedule.push(day);
     }
     return schedule;
+};
+
+export const getTeacherScheduleExams = async (
+    html: string,
+    teacherId: number,
+) => {
+    const $ = cheerio.load(html);
+
+    const rows = $(
+        'div.WidthLimiter > div > table > caption + tbody > tr',
+    ).toArray();
+    const schedule: ExamDay[] = [];
+    for (const row of rows) {
+        const $row = $(row);
+
+        // * (1) Дата
+        const dateStr = $row.find('td:nth-child(1)').text()?.trim() || null;
+        // * (2) Группа
+        const groups =
+            $row.find('td:nth-child(2)').text()?.trim().split(' ') || null;
+        // * (3) Дисциплина
+        const lessonName = $row.find('td:nth-child(3)').text()?.trim() || null;
+        // * (4) Кафедра
+        const department = $row.find('td:nth-child(4)').text()?.trim() || null;
+        // * (5) Аудитория
+        const auditoryName =
+            $row.find('td:nth-child(5)').text()?.trim() || null;
+
+        const date = moment(dateStr, 'DD.MM.YYYY');
+        const day: ExamDay = {
+            lessonName,
+            auditoryName,
+            groups,
+            date: date.toDate(),
+            teacherId,
+        };
+        schedule.push(day);
+    }
+    return schedule;
+};
+
+export const getTeachersListByExams = async (html: string) => {
+    html = `<select name="sprep" id="idprep">${html}</select>`;
+    const $ = cheerio.load(html);
+
+    const teacherList = $('select[name="sprep"][id="idprep"] > option')
+        .toArray()
+        .map((e) => ({
+            id: Number($(e).val()),
+            name: $(e).text().trim(),
+        }))
+        .filter((e) => !!e.id);
+    return teacherList as Omit<ITeacherData, 'days'>[];
 };
 
 export const getAudiencesScheduleFormData = async (html: string) => {
