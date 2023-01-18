@@ -703,21 +703,18 @@ export class YSTUProvider {
         );
         return [
             ...teacherSchedule,
-            ...(teacherScheduleExams || []).map(
-                ({ date, ...rest }) =>
-                    ({
-                        ...rest,
-                        lessonType: LessonFlags.Exam,
+            ...((teacherScheduleExams || []).map(({ date, ...rest }) => ({
+                ...rest,
+                lessonType: LessonFlags.Exam,
 
-                        startAt: date,
-                        endAt: moment(date).add(1, 'day').toDate(),
+                startAt: date,
+                endAt: moment(date).add(1, 'day').toDate(),
 
-                        weekNumber: null,
-                        number: null,
-                        timeRange: null,
-                        duration: null,
-                    } as TeacherLesson),
-            ),
+                weekNumber: null,
+                number: null,
+                timeRange: null,
+                duration: null,
+            })) as TeacherLesson[]),
         ];
     }
 

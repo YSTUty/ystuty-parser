@@ -68,6 +68,14 @@ export class CalendarService {
                         .status(ICalEventStatus.CONFIRMED)
                         .transparency(ICalEventTransparency.OPAQUE);
 
+                    if (
+                        moment(lesson.startAt).isBefore(
+                            moment(lesson.endAt),
+                            'day',
+                        )
+                    ) {
+                        event.allDay(true);
+                    }
                     if (lesson.auditoryName) {
                         event.location({
                             title: `${lesson.auditoryName}`,
@@ -143,6 +151,11 @@ export class CalendarService {
                 // ])
                 .status(ICalEventStatus.CONFIRMED)
                 .transparency(ICalEventTransparency.OPAQUE);
+
+            if (moment(lesson.startAt).isBefore(moment(lesson.endAt), 'day')) {
+                event.allDay(true);
+            }
+
             if (lesson.auditoryName) {
                 event.location({
                     title: `${lesson.auditoryName}`,
