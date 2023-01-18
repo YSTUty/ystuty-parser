@@ -88,9 +88,7 @@ export class YSTUCollector {
 
         const loopExamsCollector = async (first = false) => {
             if (!first) {
-                await delay(
-                    /* xEnv.YSTU_COLLECTOR_DELAY_LOOP */ 12 * 3600 * 1e3,
-                );
+                await delay(xEnv.YSTU_COLLECTOR_DELAY_LOOP * 1e3 * 1.25);
             }
 
             try {
@@ -123,7 +121,7 @@ export class YSTUCollector {
                 this.logger.error(err);
             }
 
-            setImmediate(loop);
+            setImmediate(loopExamsCollector);
         };
 
         await loop(true);

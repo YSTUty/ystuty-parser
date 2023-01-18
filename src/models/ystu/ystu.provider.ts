@@ -738,6 +738,12 @@ export class YSTUProvider {
         });
 
         const html = list_rasp1Response?.data;
+        if (!html) {
+            this.logger.error(
+                `Empty fetch response from getExamsByTeacher(${teacherId})`,
+            );
+            return { list: null };
+        }
         const teacherScheduleExams =
             await cherrioParser.getTeacherScheduleExams(html, teacherId);
 
