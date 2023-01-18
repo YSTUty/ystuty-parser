@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.20](https://github.com/YSTUty/ystuty-parser/compare/v0.0.19...v0.0.20) (2023-01-18)
+
+
+### 🚀 Features
+
+* **ystu:** add parsing `exams` by teachers ([459734d](https://github.com/YSTUty/ystuty-parser/commit/459734d99cbdb4bc9f3ecc6b39e9a70277dd3144))
+
+
+### 🐛 Bug Fixes
+
+* **parser:** fix auto calculate start semester date ([cd1c1dc](https://github.com/YSTUty/ystuty-parser/commit/cd1c1dcc53617de626abe93c39b719f188ff642a))
+* **ystu:** fix collect of teacher exams ([4e14516](https://github.com/YSTUty/ystuty-parser/commit/4e1451643ce8696f247d2aa5abe5d94f6a6a5f80))
+* **ystu:** fix formation of date interval ([35ed0b3](https://github.com/YSTUty/ystuty-parser/commit/35ed0b3c6fc7c45785779b80e18bfd008181e03a))
+
+
+### 🧹 Chore
+
+* **calendar:** add `allDay` flag for event ([b872793](https://github.com/YSTUty/ystuty-parser/commit/b872793c34e67740b311b4fbbf95fd6b22352025))
+
 ### [0.0.19](https://github.com/YSTUty/ystuty-parser/compare/v0.0.18...v0.0.19) (2023-01-13)
 
 
