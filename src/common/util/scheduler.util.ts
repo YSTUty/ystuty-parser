@@ -12,6 +12,8 @@ export const getLessonTypeStrArr = (type: LessonFlags) => {
     if (type & LessonFlags.Exam) types.push('ЭКЗ');
     if (type & LessonFlags.Library) types.push('Библиотека');
     if (type & LessonFlags.ResearchWork) types.push('НИР');
+    if (type & LessonFlags.OrganizationalMeeting) types.push('Орг. собрание');
+    if (type & LessonFlags.Unsupported) types.push('N/A');
     if (type & LessonFlags.None) types.push('???');
     return types;
 };
