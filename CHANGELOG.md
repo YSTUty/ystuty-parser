@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.21](https://github.com/YSTUty/ystuty-parser/compare/v0.0.20...v0.0.21) (2024-01-13)
+
+
+### 🐛 Bug Fixes
+
+* **parser:** check `timeRange` for correct data ([d0f04e3](https://github.com/YSTUty/ystuty-parser/commit/d0f04e3d98c93f34f229e48e0418afc737576e36))
+* **readme:** change server host on badges ([88138d2](https://github.com/YSTUty/ystuty-parser/commit/88138d21812e4a3cdefcf5bfb2dc3f94a83ad4e4))
+
+
+### 🧹 Chore
+
+* **common:** add `unsupported` lesson flag ([091dcdb](https://github.com/YSTUty/ystuty-parser/commit/091dcdb15445a88688ff6cf480069e402f80d2c0))
+* **parser:** adding correct week number for exam dates with day info ([043bb82](https://github.com/YSTUty/ystuty-parser/commit/043bb82cf5ba106121e50c76577494bc6d419431))
+
 ### [0.0.20](https://github.com/YSTUty/ystuty-parser/compare/v0.0.19...v0.0.20) (2023-01-18)
 
 

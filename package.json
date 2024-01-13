@@ -1,6 +1,6 @@
 {
   "name": "ystuty-parser",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "",
   "author": "xTCry [Vladislav Kh] (https://github.com/xTCry/)",
   "private": true,
@@ -30,9 +30,9 @@
     "prettify": "prettier --write src/**/*",
     "prepare": "husky install",
     "release": "standard-version",
+    "release:major": "standard-version --release-as major",
     "release:minor": "standard-version --release-as minor",
-    "release:patch": "standard-version --release-as patch",
-    "release:major": "standard-version --release-as major"
+    "release:patch": "standard-version --release-as patch"
   },
   "dependencies": {
     "@nestjs/axios": "^0.1.0",
