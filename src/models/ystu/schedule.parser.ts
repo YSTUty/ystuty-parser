@@ -1,6 +1,11 @@
 import * as cheerio from 'cheerio';
 import * as moment from 'moment';
 import { LessonFlags, WeekNumberType, WeekParityType } from '@my-interfaces';
+import {
+    getLessonTypeFromStr,
+    getWeekNumber,
+    getWeekOffsetByYear,
+} from '@my-common';
 
 import { Lesson } from './entity/lesson.entity';
 import { MixedDay } from './entity/mixed-day.entity';
@@ -148,24 +153,7 @@ export const parseDayLesson = (str: string[]) => {
         .flatMap((e) => e.split(','))
         .map((e) => e.trim().toLowerCase())
         .reduce(
-            (prev, type) =>
-                (prev |= type.includes('пр' /* 'пр.з' */)
-                    ? LessonFlags.Practical
-                    : type.includes('лек')
-                    ? LessonFlags.Lecture
-                    : type.includes('лаб')
-                    ? LessonFlags.Labaratory
-                    : type.includes('кп')
-                    ? LessonFlags.CourseProject
-                    : type.includes('конс')
-                    ? LessonFlags.Consultation
-                    : type.includes('диф')
-                    ? LessonFlags.DifferentiatedTest
-                    : type.includes('зач')
-                    ? LessonFlags.Test
-                    : type.includes('экз')
-                    ? LessonFlags.Exam
-                    : LessonFlags.None),
+            (prev, type) => (prev |= getLessonTypeFromStr(type)),
             LessonFlags.None,
         );
 
@@ -383,12 +371,11 @@ const setDaysDate = (
                 info.date = getDateByWeek(weekNumber + offsetWeek, info.type);
             }
 
-            info.dateStr = `${info.date
-                .getDate()
-                .toString()
-                .padStart(2, '0')}.${(info.date.getMonth() + 1)
-                .toString()
-                .padStart(2, '0')}.${info.date.getFullYear()}`;
+            info.dateStr = [
+                info.date.getDate().toString().padStart(2, '0'),
+                (info.date.getMonth() + 1).toString().padStart(2, '0'),
+                info.date.getFullYear(),
+            ].join('.');
         }
 
         for (const lesson of lessons) {
@@ -469,8 +456,10 @@ export const splitToWeeks = (
                 splitWeekDays[week] = [];
             }
             lastWeekType = day.info.type;
+            const date = new Date(day.info.date);
             day.info.weekNumber =
-                moment(day.info.date).diff(semStartWeekMoment, 'weeks') + 1;
+                getWeekNumber(date) - getWeekOffsetByYear(date);
+            // moment(day.info.date).diff(semStartWeekMoment, 'weeks') + 1;
 
             splitWeekDays[week].push(day);
         }
@@ -604,24 +593,7 @@ export const parseTeacherDayCherrio = ((
         .flatMap((e) => e.split(','))
         .map((e) => e.trim().toLowerCase())
         .reduce(
-            (prev, type) =>
-                (prev |= type.includes('пр' /* 'пр.з' */)
-                    ? LessonFlags.Practical
-                    : type.includes('лек')
-                    ? LessonFlags.Lecture
-                    : type.includes('лаб')
-                    ? LessonFlags.Labaratory
-                    : type.includes('кп')
-                    ? LessonFlags.CourseProject
-                    : type.includes('конс')
-                    ? LessonFlags.Consultation
-                    : type.includes('диф')
-                    ? LessonFlags.DifferentiatedTest
-                    : type.includes('зач')
-                    ? LessonFlags.Test
-                    : type.includes('экз')
-                    ? LessonFlags.Exam
-                    : LessonFlags.None),
+            (prev, type) => (prev |= getLessonTypeFromStr(type)),
             LessonFlags.None,
         );
 
@@ -665,7 +637,25 @@ export const parseTeacherDays = (data: string[][]) => {
     return schedule;
 };
 
-export const injectExams = (
+// export function injectExams(
+//     schedule: MixedDay[],
+//     exams: {
+//         exam: ExamDay;
+//         teacherId: number;
+//         teacherName: string;
+//     }[],
+//     short: true,
+// ): void;
+// export function injectExams(
+//     schedule: OneWeek[],
+//     exams: {
+//         exam: ExamDay;
+//         teacherId: number;
+//         teacherName: string;
+//     }[],
+//     short?: false,
+// ): void;
+export function injectExams(
     schedule: (OneWeek | MixedDay)[],
     exams: {
         exam: ExamDay;
@@ -673,15 +663,16 @@ export const injectExams = (
         teacherName: string;
     }[],
     short: boolean,
-) => {
+) {
     for (const { teacherName, exam } of exams) {
         let targetDay: OneDay | MixedDay = null;
 
         if (short) {
-            targetDay = (schedule as MixedDay[]).find((day) =>
-                day.lessons.some((e) =>
-                    moment(e.startAt).isSame(exam.date, 'day'),
-                ),
+            targetDay = (schedule as MixedDay[]).find(
+                (day) =>
+                    day.lessons.some((e) =>
+                        moment(e.startAt).isSame(exam.date, 'day'),
+                    ) || moment(day.info.date)?.isSame(exam.date, 'day'),
             );
         } else {
             let isFound = false;
@@ -691,7 +682,8 @@ export const injectExams = (
                     if (
                         day.lessons.some((e) =>
                             moment(e.startAt).isSame(exam.date, 'day'),
-                        )
+                        ) ||
+                        moment(day.info.date)?.isSame(exam.date, 'day')
                     ) {
                         targetDay = day;
                         isFound = true;
@@ -728,30 +720,46 @@ export const injectExams = (
             continue;
         }
 
+        const semStartWeekMoment = moment(getStartDateOfSemester());
+        // const weekNumber =
+        //     moment(lessonFormat.startAt).diff(semStartWeekMoment, 'weeks') + 1;
+
+        const startAtDate = new Date(lessonFormat.startAt);
+        const weekNumber =
+            getWeekNumber(startAtDate) - getWeekOffsetByYear(startAtDate);
+
         const oneDayExam: OneDay = {
-            info: { name: null },
+            info: {
+                name: null,
+                type: moment(exam.date).week() - 1,
+                weekNumber,
+                date: moment(exam.date).second(0).minute(0).hour(0).toDate(),
+            },
             lessons: [lessonFormat],
         };
 
+        const { info } = oneDayExam;
+        info.dateStr = [
+            info.date.getDate().toString().padStart(2, '0'),
+            (info.date.getMonth() + 1).toString().padStart(2, '0'),
+            info.date.getFullYear(),
+        ].join('.');
+
         if (!short) {
-            const semStartWeekMoment = moment(getStartDateOfSemester());
-            const weekNumber =
-                moment(lessonFormat.startAt).diff(semStartWeekMoment, 'weeks') +
-                1;
-            const newWeek = {
-                number: weekNumber,
-                days: [oneDayExam],
-            };
-            const weekIndex = (schedule as OneWeek[]).findIndex(
+            let weekIndex = (schedule as OneWeek[]).findIndex(
                 (e) => e.number === weekNumber,
             );
+
             if (weekIndex === -1) {
-                (schedule as OneWeek[]).push(newWeek);
-            } else {
-                (schedule[weekIndex] as OneWeek).days.push(oneDayExam);
+                const newWeek = {
+                    number: weekNumber,
+                    days: [],
+                };
+                weekIndex += (schedule as OneWeek[]).push(newWeek);
             }
+            (schedule[weekIndex] as OneWeek).days.push(oneDayExam);
         } else {
             (schedule as MixedDay[]).push(oneDayExam);
         }
     }
-};
+}
