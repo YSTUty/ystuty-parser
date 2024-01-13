@@ -54,7 +54,7 @@ export class YSTUCollector {
                 }
                 this.teachersData = teachersData;
             } catch (err) {
-                this.logger.error(err);
+                this.logger.error(err, err.stack);
             }
 
             try {
@@ -68,7 +68,7 @@ export class YSTUCollector {
                     `Teachers by exams: ${this.teachersListByExams.length}`,
                 );
             } catch (err) {
-                this.logger.error(err);
+                this.logger.error(err, err.stack);
             }
 
             try {
@@ -80,7 +80,7 @@ export class YSTUCollector {
                 }
                 this.audiencesData = audiencesData;
             } catch (err) {
-                this.logger.error(err);
+                this.logger.error(err, err.stack);
             }
 
             setImmediate(loop);
@@ -118,7 +118,7 @@ export class YSTUCollector {
                     }
                 }
             } catch (err) {
-                this.logger.error(err);
+                this.logger.error(err, err.stack);
             }
 
             setImmediate(loopExamsCollector);
@@ -176,7 +176,7 @@ export class YSTUCollector {
                         rec.items = items;
                     }
                 } catch (err) {
-                    this.logger.error(err);
+                    this.logger.error(err, err.stack);
                 }
             }
         } finally {
@@ -242,7 +242,7 @@ export class YSTUCollector {
 
                 yield queueAudiences;
             } catch (err) {
-                this.logger.error(err);
+                this.logger.error(err, err.stack);
             }
 
             if (isFirst) {

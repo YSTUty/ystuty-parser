@@ -543,7 +543,7 @@ export const parseTeacherDayCherrio = ((
     // * (8) Преподаватели
     const teacherName = $row.find('td:nth-child(8)').text()?.trim() || null;
 
-    const [number, timeRange] = (([a, b]) => [Number(a), b])(
+    const [number, timeRange] = (([a, b] = []) => [Number(a), b])(
         timeStr?.split(' '),
     );
 
@@ -551,9 +551,8 @@ export const parseTeacherDayCherrio = ((
 
     const durationMinutes = 90;
     const durationHours = ((d) => Math.round((d + 10) / 50))(durationMinutes);
-    const fixedTimeStart = (([e]) => (TIME_REGEXP.test(e) ? e : '00:00'))(
-        timeRange.split('-'),
-    );
+    const fixedTimeStart = (([e] = []) =>
+        e && TIME_REGEXP.test(e) ? e : '00:00')(timeRange?.split('-'));
 
     const [[, minMonth, minYear], [, maxMonth]] = ((d) =>
         d.map((e) => e.split('.').map(Number)))([datts.datt0, datts.datt1]);
