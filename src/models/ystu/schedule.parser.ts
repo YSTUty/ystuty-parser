@@ -152,6 +152,7 @@ export const parseDayLesson = (str: string[]) => {
     ]
         .flatMap((e) => e.split(','))
         .map((e) => e.trim().toLowerCase())
+        .filter(Boolean)
         .reduce(
             (prev, type) => (prev |= getLessonTypeFromStr(type)),
             LessonFlags.None,
@@ -592,6 +593,7 @@ export const parseTeacherDayCherrio = ((
     ]
         .flatMap((e) => e.split(','))
         .map((e) => e.trim().toLowerCase())
+        .filter(Boolean)
         .reduce(
             (prev, type) => (prev |= getLessonTypeFromStr(type)),
             LessonFlags.None,
