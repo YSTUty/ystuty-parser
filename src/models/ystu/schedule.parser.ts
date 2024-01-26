@@ -697,7 +697,7 @@ export function injectExams(
 
         const lessonFormat: Lesson = {
             startAt: exam.date,
-            endAt: moment(exam.date).add(1, 'day').toDate(),
+            endAt: moment(exam.date).add(23, 'hour').toDate(),
 
             number: null,
             time: null,
@@ -733,7 +733,7 @@ export function injectExams(
         const oneDayExam: OneDay = {
             info: {
                 name: null,
-                type: moment(exam.date).week() - 1,
+                type: moment(exam.date).day() - 1,
                 weekNumber,
                 date: moment(exam.date).second(0).minute(0).hour(0).toDate(),
             },
