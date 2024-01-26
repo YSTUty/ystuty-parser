@@ -343,7 +343,7 @@ export class YSTUCollector {
                     schedule.push({
                         exam,
                         teacherId,
-                        teacherName: teacher.name,
+                        teacherName: teacher.name.replace(/\s/i, ' '),
                     });
                 }
             }
