@@ -6,6 +6,8 @@ import {
     NotFoundException,
     OnModuleInit,
 } from '@nestjs/common';
+
+import * as xEnv from '@my-environment';
 import { IInstituteData } from '@my-interfaces';
 import { cacheManager, delay } from '@my-common';
 
@@ -47,8 +49,7 @@ export class YSTUService implements OnModuleInit {
     private async startLoop() {
         const loop = async (first = false) => {
             if (!first) {
-                // 12 hours delay
-                await delay(12 * 3600 * 1e3);
+                await delay(xEnv.YSTU_DELAY_RASP_LINKS * 1e3);
             }
 
             try {

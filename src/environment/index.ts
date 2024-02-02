@@ -121,6 +121,10 @@ export const YSTU_COLLECTOR_RATE_LIMIT_COOLDOWN: number =
 
 // * Delays (in seconds)
 
+// 6 hours
+export const YSTU_DELAY_RASP_LINKS: number =
+    +process.env.YSTU_DELAY_RASP_LINKS || 6 * 3600;
+
 export const YSTU_COLLECTOR_DELAY_LOOP: number =
     +process.env.YSTU_COLLECTOR_DELAY_LOOP || 30 * 60;
 
