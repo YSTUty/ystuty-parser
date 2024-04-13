@@ -464,7 +464,7 @@ export class YSTUProvider {
         let allScheduleLinks: string[] = [];
         if (xEnv.YSTU_RASPZ_ID_ALL.length === 0) {
             const raspzResponse = await this.fetch('/WPROG/rasp/raspz.php', {
-                useCache: true,
+                useCache: false,
             });
 
             allScheduleLinks = cherrioParser.getScheduleLinks(
