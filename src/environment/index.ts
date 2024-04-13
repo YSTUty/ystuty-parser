@@ -22,6 +22,10 @@ export const SERVER_PORT: number = +process.env.SERVER_PORT || 8080;
 export const SERVER_URL: string =
     process.env.SERVER_URL || `http://${APP_DOMAIN}:${SERVER_PORT}`;
 
+export const SERVER_URL_NEW: string | null = process.env.SERVER_URL_NEW || null;
+export const SERVER_URL_ICAL_NEW: string | null =
+    process.env.SERVER_URL_ICAL_NEW || null;
+
 export const YSTU_URL: string = process.env.YSTU_URL || 'https://www.ystu.ru';
 export const YSTU_HTTP_TIMEOUT: number = +process.env.YSTU_HTTP_TIMEOUT || 10e3;
 

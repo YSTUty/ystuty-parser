@@ -23,8 +23,6 @@ export class CalendarService {
 
         const calendar = ical()
             .name(`YSTUty [${groupName}]`)
-            .url(xEnv.SERVER_URL)
-            .source(`${xEnv.SERVER_URL}/calendar/group/${groupName}.ical`)
             .prodId({
                 company: 'YSTUty',
                 product: `${xEnv.APP_NAME} Schedule`,
@@ -35,6 +33,16 @@ export class CalendarService {
             .timezone('Europe/Moscow')
             .description(`Расписание занятий ЯГТУ для группы ${groupName}`)
             .ttl(60 * 60);
+
+        if (xEnv.SERVER_URL_ICAL_NEW) {
+            calendar
+                .url(xEnv.SERVER_URL_ICAL_NEW)
+                .source(`${xEnv.SERVER_URL_ICAL_NEW}/group/${groupName}.ical`);
+        } else {
+            calendar
+                .url(xEnv.SERVER_URL)
+                .source(`${xEnv.SERVER_URL}/calendar/group/${groupName}.ical`);
+        }
 
         for (const week of schedule.items) {
             for (const day of week.days) {
@@ -110,8 +118,6 @@ export class CalendarService {
 
         const calendar = ical()
             .name(`YSTUty [${teacher.name}]`)
-            .url(xEnv.SERVER_URL)
-            .source(`${xEnv.SERVER_URL}/calendar/teacher/${teacherId}.ical`)
             .prodId({
                 company: 'YSTUty',
                 product: `${xEnv.APP_NAME} Teacher Schedule`,
@@ -124,6 +130,20 @@ export class CalendarService {
                 `Расписание занятий ЯГТУ для преподавателя ${teacher.name}`,
             )
             .ttl(60 * 60);
+
+        if (xEnv.SERVER_URL_ICAL_NEW) {
+            calendar
+                .url(xEnv.SERVER_URL_ICAL_NEW)
+                .source(
+                    `${xEnv.SERVER_URL_ICAL_NEW}/teacher/${teacherId}.ical`,
+                );
+        } else {
+            calendar
+                .url(xEnv.SERVER_URL)
+                .source(
+                    `${xEnv.SERVER_URL}/calendar/teacher/${teacherId}.ical`,
+                );
+        }
 
         for (const lesson of schedule) {
             const event = calendar
