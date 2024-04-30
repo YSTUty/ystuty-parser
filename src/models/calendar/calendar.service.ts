@@ -3,6 +3,8 @@ import ical, {
     ICalCalendarMethod,
     ICalEventTransparency,
     ICalEventStatus,
+    ICalCalendar,
+    ICalAlarmType,
 } from 'ical-generator';
 import * as moment from 'moment';
 import { getLessonTypeStrArr } from '@my-common';
@@ -38,6 +40,7 @@ export class CalendarService {
             calendar
                 .url(xEnv.SERVER_URL_ICAL_NEW)
                 .source(`${xEnv.SERVER_URL_ICAL_NEW}/group/${groupName}.ical`);
+            this.injectNewCalendar(calendar, groupName);
         } else {
             calendar
                 .url(xEnv.SERVER_URL)
@@ -137,6 +140,7 @@ export class CalendarService {
                 .source(
                     `${xEnv.SERVER_URL_ICAL_NEW}/teacher/${teacherId}.ical`,
                 );
+            this.injectNewCalendar(calendar, teacherId);
         } else {
             calendar
                 .url(xEnv.SERVER_URL)
@@ -189,5 +193,40 @@ export class CalendarService {
         }
 
         return calendar;
+    }
+
+    private injectNewCalendar(calendar: ICalCalendar, target: string | number) {
+        const today = moment();
+        const monday = today.clone().startOf('isoWeek');
+        const nextMonday = monday.clone().add(1, 'week');
+
+        for (let date = monday; date.isBefore(nextMonday); date.add(1, 'day')) {
+            const isMonday = date.day() === 1;
+
+            const eventDuration = isMonday
+                ? moment.duration(1, 'day')
+                : moment.duration(5, 'hours');
+
+            const startDate = date.clone().hour(8);
+            const event = calendar
+                .createEvent({})
+                .start(startDate.toDate())
+                .end(startDate.clone().add(eventDuration).toDate())
+                .summary(
+                    `🚨 [YSTUty] Нужно обновить ссылку на расписание! (ics.ystuty.ru)`,
+                )
+                .description(
+                    `Перейти на сайт ics.ystuty.ru (<a href="https://ics.ystuty.ru/#${target}">перейти</a>) для получения новой ссылки на расписание.\n` +
+                        `Этот календарь надо либо удалить, либо обновить ссылку в насройках вашего календаря для него.\n` +
+                        `В билжайшее время этот календарь будет отключен`,
+                )
+                .alarms([{ type: ICalAlarmType.display, trigger: 60 * 30 }])
+                .status(ICalEventStatus.CONFIRMED)
+                .transparency(ICalEventTransparency.OPAQUE);
+
+            if (isMonday) {
+                event.allDay(true);
+            }
+        }
     }
 }
