@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import * as xEnv from '@my-environment';
 
 import { CalendarService } from './calendar.service';
 
@@ -54,6 +55,16 @@ export class CalendarController {
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
     ) {
+        if (
+            xEnv.REDIRECT_TO_NEW_ICAL &&
+            Math.random() > xEnv.REDIRECT_TO_NEW_ICAL
+        ) {
+            this.logger.log('Redirect to new ical file...');
+            const url = `${xEnv.SERVER_URL_ICAL_NEW}/group/${groupName}.ical`;
+            res.redirect(url);
+            return;
+        }
+
         this.logger.log(
             `Generate calendar [${groupName}]`,
             req.headers['user-agent'],
@@ -100,6 +111,16 @@ export class CalendarController {
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
     ) {
+        if (
+            xEnv.REDIRECT_TO_NEW_ICAL &&
+            Math.random() > xEnv.REDIRECT_TO_NEW_ICAL
+        ) {
+            this.logger.log('Redirect to new ical file...');
+            const url = `${xEnv.SERVER_URL_ICAL_NEW}/teacher/${teacherId}.ical`;
+            res.redirect(url);
+            return;
+        }
+
         this.logger.log(
             `Generate calendar [${teacherId}]`,
             req.headers['user-agent'],

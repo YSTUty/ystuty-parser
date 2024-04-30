@@ -25,6 +25,8 @@ export const SERVER_URL: string =
 export const SERVER_URL_NEW: string | null = process.env.SERVER_URL_NEW || null;
 export const SERVER_URL_ICAL_NEW: string | null =
     process.env.SERVER_URL_ICAL_NEW || null;
+export const REDIRECT_TO_NEW_ICAL: number =
+    +process.env.REDIRECT_TO_NEW_ICAL || null;
 
 export const YSTU_URL: string = process.env.YSTU_URL || 'https://www.ystu.ru';
 export const YSTU_HTTP_TIMEOUT: number = +process.env.YSTU_HTTP_TIMEOUT || 10e3;
