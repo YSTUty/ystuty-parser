@@ -38,16 +38,34 @@ async function bootstrap() {
     app.enableShutdownHooks();
 
     if (xEnv.SWAGGER_ACCESS_USERNAME) {
-        app.use(
-            ['/swagger', '/swagger-json', '/swagger-stats'],
-            basicAuth({
-                challenge: true,
-                users: {
-                    [xEnv.SWAGGER_ACCESS_USERNAME]:
-                        xEnv.SWAGGER_ACCESS_PASSWORD,
-                },
-            }),
-        );
+        if (xEnv.SWAGGER_ACCESS_PASSWORD) {
+            app.use(
+                ['/swagger', '/swagger-json'],
+                basicAuth({
+                    challenge: true,
+                    users: {
+                        [xEnv.SWAGGER_ACCESS_USERNAME]:
+                            xEnv.SWAGGER_ACCESS_PASSWORD,
+                    },
+                }),
+            );
+        }
+        if (
+            xEnv.SWAGGER_ACCESS_PASSWORD_STATS ||
+            xEnv.SWAGGER_ACCESS_PASSWORD
+        ) {
+            app.use(
+                ['/swagger-stats'],
+                basicAuth({
+                    challenge: true,
+                    users: {
+                        [xEnv.SWAGGER_ACCESS_USERNAME]:
+                            xEnv.SWAGGER_ACCESS_PASSWORD_STATS ||
+                            xEnv.SWAGGER_ACCESS_PASSWORD,
+                    },
+                }),
+            );
+        }
     }
 
     const swaggerConfig = new DocumentBuilder()
