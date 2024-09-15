@@ -3,9 +3,10 @@
 <p align="center">
   <img src="https://img.shields.io/github/package-json/v/YSTUty/ystuty-parser?style=flat-square" alt="GitHub package.json version"/>
   <img src="https://img.shields.io/github/last-commit/YSTUty/ystuty-parser?style=flat-square" alt="GitHub last commit"/>
+  <img src="https://img.shields.io/badge/status-inactive-red.svg?style=flat-square" alt="status: inactive"/>
   <!-- <img src="https://img.shields.io/badge/dynamic/json?color=ced&style=flat-square&logo=telegram&label=Used by&suffix= user&query=ip&url=http://ip.jsontest.com" alt="GitHub last commit"/> -->
-  <img src="https://img.shields.io/badge/dynamic/json?color=ced&style=flat-square&logo=GraphQL&label=Доступно&suffix= групп&query=$.groups&url=https://parser.ystuty.ru/api/ystu/schedule/count?extramural=true" alt="Number of available groups"/>
-  <img src="https://img.shields.io/badge/dynamic/json?color=ced&style=flat-square&logo=GraphQL&label=Доступно&suffix= преподавателей&query=$.teachers&url=https://parser.ystuty.ru/api/ystu/schedule/count" alt="Number of available teachers"/>
+  <!-- <img src="https://img.shields.io/badge/dynamic/json?color=ced&style=flat-square&logo=GraphQL&label=Доступно&suffix= групп&query=$.groups&url=https://parser.ystuty.ru/api/ystu/schedule/count?extramural=true" alt="Number of available groups"/>
+  <img src="https://img.shields.io/badge/dynamic/json?color=ced&style=flat-square&logo=GraphQL&label=Доступно&suffix= преподавателей&query=$.teachers&url=https://parser.ystuty.ru/api/ystu/schedule/count" alt="Number of available teachers"/> -->
   <br/>
   <a href="https://view.ystuty.ru" target="_blank"><img src="https://img.shields.io/badge/Viwe%20schedule-YSTUty-9cf?style=flat-square&logo=Internet%20Explorer" alt="view.ystuty.ru"/></a>
   <a href="https://vk.com/ss_ystu"><img src="https://img.shields.io/badge/Bot-Use now-9cf?style=flat-square&logo=vk" alt="vk.com/ss_ystu"/></a>
@@ -15,10 +16,17 @@
 # [YSTUty] Parser
 > Парсер расписания из личного кабинета сайта ЯГТУ с API.
 
-## Используется в
+# Archived!
+
+**Данный сервис больше не используется!**
+
+> Все нововведения происходят в [репозитории ystuty-service-schedule](https://github.com/YSTUty/ystuty-service-schedule).
+
+## ~~Используется в~~
   * [[YSTUty] Viever](https://github.com/YSTUty/ystuty-viewer-frontend#readme): Решение для визуализации данных в виде календаря
   * [[YSTUty] Bot](https://github.com/YSTUty/ystuty-bot#readme): Решение в виде бота для мессенджера Telegram и VK
-> Если вы хотите добавить свой проект в список, создайте [новую тему](https://github.com/YSTUty/ystuty-parser/issues/new) в репозитории.
+> ~~Если вы хотите добавить свой проект в список, создайте [новую тему](https://github.com/YSTUty/ystuty-parser/issues/new) в репозитории.~~
+
 <hr/>
 
 <p align="center">
